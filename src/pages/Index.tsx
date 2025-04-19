@@ -1,6 +1,8 @@
 
 import InvoiceForm from "@/components/InvoiceForm";
 import InvoiceList from "@/components/InvoiceList";
+import CompanySettings from "@/components/CompanySettings";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const Index = () => {
   return (
@@ -13,8 +15,22 @@ const Index = () => {
           <p className="text-gray-600 mt-2">Billing Management System</p>
         </header>
         
-        <InvoiceForm />
-        <InvoiceList />
+        <Tabs defaultValue="invoice" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="invoice">New Invoice</TabsTrigger>
+            <TabsTrigger value="list">Invoice List</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
+          <TabsContent value="invoice">
+            <InvoiceForm />
+          </TabsContent>
+          <TabsContent value="list">
+            <InvoiceList />
+          </TabsContent>
+          <TabsContent value="settings">
+            <CompanySettings />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

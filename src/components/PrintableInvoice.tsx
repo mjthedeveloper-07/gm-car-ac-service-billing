@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 interface ServiceItem {
   description: string;
@@ -16,6 +16,16 @@ interface InvoiceProps {
   id: string;
 }
 
+interface CompanyDetails {
+  name: string;
+  address: string;
+  city: string;
+  pincode: string;
+  phone: string;
+  email: string;
+  website: string;
+}
+
 const PrintableInvoice: React.FC<InvoiceProps> = ({
   customerName,
   vehicleModel,
@@ -25,18 +35,35 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
   date,
   id
 }) => {
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
+    name: 'GM CAR A/C SERVICE & MULTIBRAND',
+    address: '123 Service Road, Mechanical District',
+    city: 'Chennai',
+    pincode: '600001',
+    phone: '+91 98765 43210',
+    email: 'gmservice@example.com',
+    website: 'www.gmcarservice.com'
+  });
+
+  useEffect(() => {
+    const savedDetails = localStorage.getItem('companyDetails');
+    if (savedDetails) {
+      setCompanyDetails(JSON.parse(savedDetails));
+    }
+  }, []);
+
   return (
     <div className="p-8 max-w-4xl mx-auto bg-white" id="printable-invoice">
       <div className="border-b-2 pb-6 mb-6">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">GM CAR A/C SERVICE & MULTIBRAND</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{companyDetails.name}</h1>
             <div className="mt-2 text-gray-600">
-              <p>123 Service Road, Mechanical District</p>
-              <p>Chennai, Tamil Nadu - 600001</p>
-              <p>Phone: +91 98765 43210</p>
-              <p>Email: gmservice@example.com</p>
-              <p>Website: www.gmcarservice.com</p>
+              <p>{companyDetails.address}</p>
+              <p>{companyDetails.city}, Tamil Nadu - {companyDetails.pincode}</p>
+              <p>Phone: {companyDetails.phone}</p>
+              <p>Email: {companyDetails.email}</p>
+              <p>Website: {companyDetails.website}</p>
             </div>
           </div>
           <div className="text-right">
