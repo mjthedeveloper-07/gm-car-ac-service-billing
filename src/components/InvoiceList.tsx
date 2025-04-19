@@ -2,7 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Wallet } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Wallet, Download } from 'lucide-react';
+import PrintableInvoice from './PrintableInvoice';
 
 interface ServiceItem {
   description: string;
@@ -27,6 +29,36 @@ const InvoiceList = () => {
     setInvoices(storedInvoices);
   }, []);
 
+  const downloadInvoice = (invoice: Invoice) => {
+    const invoiceElement = document.createElement('div');
+    invoiceElement.style.position = 'absolute';
+    invoiceElement.style.left = '-9999px';
+    document.body.appendChild(invoiceElement);
+
+    // Render the PrintableInvoice component into the hidden div
+    const content = <PrintableInvoice {...invoice} />;
+    const printWindow = window.open('', '_blank');
+    
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Invoice - ${invoice.id}</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+          </head>
+          <body>
+            ${invoiceElement.innerHTML}
+          </body>
+        </html>
+      `);
+      
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    document.body.removeChild(invoiceElement);
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto mt-8">
       <CardHeader>
@@ -47,9 +79,19 @@ const InvoiceList = () => {
                       {invoice.vehicleModel} - {invoice.vehicleNumber}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold">₹{invoice.total}</p>
-                    <p className="text-sm text-gray-500">{invoice.date}</p>
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-semibold">₹{invoice.total}</p>
+                      <p className="text-sm text-gray-500">{invoice.date}</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => downloadInvoice(invoice)}
+                      className="ml-2"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </Card>
