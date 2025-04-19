@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Receipt } from 'lucide-react';
+import { Receipt, Phone } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 
 interface ServiceItem {
@@ -16,6 +16,7 @@ interface Invoice {
   id: string;
   date: string;
   customerName: string;
+  customerPhone: string;  // Added phone number to the interface
   vehicleModel: string;
   vehicleNumber: string;
   services: ServiceItem[];
@@ -25,6 +26,7 @@ interface Invoice {
 const InvoiceForm = () => {
   const { toast } = useToast();
   const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');  // New state for phone number
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
@@ -54,6 +56,7 @@ const InvoiceForm = () => {
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       customerName,
+      customerPhone,  // Include phone number in the invoice
       vehicleModel,
       vehicleNumber,
       services,
@@ -73,6 +76,7 @@ const InvoiceForm = () => {
 
     // Reset form
     setCustomerName('');
+    setCustomerPhone('');  // Reset phone number
     setVehicleModel('');
     setVehicleNumber('');
     setServices([{ description: '', amount: 0 }]);
@@ -96,6 +100,17 @@ const InvoiceForm = () => {
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="customerPhone">Customer Phone</Label>
+              <Input
+                id="customerPhone"
+                type="tel"
+                value={customerPhone}
+                onChange={(e) => setCustomerPhone(e.target.value)}
+                placeholder="Enter customer phone number"
+                startIcon={<Phone className="h-4 w-4 text-gray-500" />}
               />
             </div>
             <div className="space-y-2">

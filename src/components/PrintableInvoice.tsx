@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 
 interface ServiceItem {
@@ -8,6 +7,7 @@ interface ServiceItem {
 
 interface InvoiceProps {
   customerName: string;
+  customerPhone: string;
   vehicleModel: string;
   vehicleNumber: string;
   services: ServiceItem[];
@@ -28,6 +28,7 @@ interface CompanyDetails {
 
 const PrintableInvoice: React.FC<InvoiceProps> = ({
   customerName,
+  customerPhone,
   vehicleModel,
   vehicleNumber,
   services,
@@ -79,6 +80,7 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
           <h2 className="text-lg font-semibold mb-2">Invoice To:</h2>
           <div className="text-gray-600">
             <p className="font-medium">{customerName}</p>
+            {customerPhone && <p>Phone: {customerPhone}</p>}
             <p>Vehicle: {vehicleModel}</p>
             <p>Number: {vehicleNumber}</p>
           </div>

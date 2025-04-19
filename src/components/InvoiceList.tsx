@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wallet, Download } from 'lucide-react';
+import { Wallet, Download, Phone } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 
 interface ServiceItem {
@@ -15,6 +15,7 @@ interface Invoice {
   id: string;
   date: string;
   customerName: string;
+  customerPhone: string;  // Added phone number to the interface
   vehicleModel: string;
   vehicleNumber: string;
   services: ServiceItem[];
@@ -75,6 +76,12 @@ const InvoiceList = () => {
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{invoice.customerName}</h3>
+                    {invoice.customerPhone && (
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <Phone className="h-4 w-4 text-gray-500" />
+                        {invoice.customerPhone}
+                      </p>
+                    )}
                     <p className="text-sm text-gray-500">
                       {invoice.vehicleModel} - {invoice.vehicleNumber}
                     </p>
