@@ -104,14 +104,17 @@ const InvoiceForm = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="customerPhone">Customer Phone</Label>
-              <Input
-                id="customerPhone"
-                type="tel"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="Enter customer phone number"
-                startIcon={<Phone className="h-4 w-4 text-gray-500" />}
-              />
+              <div className="flex items-center gap-2 relative">
+                <Phone className="h-4 w-4 text-gray-500 absolute left-3" />
+                <Input
+                  id="customerPhone"
+                  type="tel"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  placeholder="Enter customer phone number"
+                  className="pl-10"
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="vehicleModel">Vehicle Model</Label>
