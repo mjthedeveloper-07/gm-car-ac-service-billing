@@ -38,12 +38,12 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
 }) => {
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
     name: 'GM CAR A/C SERVICE & MULTIBRAND',
-    address: '123 Service Road, Mechanical District',
+    address: 'No:16 Gangai Amman Kallikuppam, Ambattur Chennai-53 Tamilnadu',
     city: 'Chennai',
-    pincode: '600001',
-    phone: '+91 98765 43210',
-    email: 'gmservice@example.com',
-    website: 'www.gmcarservice.com'
+    pincode: '600053',
+    phone: '+91 84280 00085',
+    email: 'gmautocool@gmail.com',
+    website: 'www.gmcaracservice.com'
   });
 
   useEffect(() => {
