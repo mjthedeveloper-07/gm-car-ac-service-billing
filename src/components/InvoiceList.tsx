@@ -1,5 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,7 @@ interface Invoice {
 }
 
 const InvoiceList = () => {
+  const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
 
@@ -81,21 +82,16 @@ const InvoiceList = () => {
     }
   };
 
+  const handleEdit = (id: string) => {
+    navigate(`/edit/${id}`);
+  };
+
   const handleDelete = (id: string) => {
     const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
     localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
     setInvoices(updatedInvoices);
     toast.success("Invoice deleted successfully");
     setInvoiceToDelete(null);
-  };
-
-  const handleEdit = (id: string) => {
-    // Navigate to invoice form with the selected invoice
-    window.location.hash = 'invoice';
-    const selectedInvoice = invoices.find(invoice => invoice.id === id);
-    if (selectedInvoice) {
-      localStorage.setItem('editInvoice', JSON.stringify(selectedInvoice));
-    }
   };
 
   return (
