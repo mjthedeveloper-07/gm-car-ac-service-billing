@@ -7,6 +7,7 @@ import { Wallet, Download, Phone, Calendar, Edit2, Trash2 } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
 import { format } from 'date-fns';
+import jsPDF from 'jspdf';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -94,6 +95,40 @@ const InvoiceList = () => {
     setInvoiceToDelete(null);
   };
 
+  const saveAllInvoicesAsPDF = () => {
+    invoices.forEach((invoice) => {
+      const doc = new jsPDF();
+
+      doc.setFontSize(16);
+      doc.text(`Invoice #${invoice.id}`, 14, 20);
+
+      doc.setFontSize(12);
+      doc.text(`Date: ${invoice.date}`, 14, 30);
+      doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
+      doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
+      doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
+      doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
+
+      let currentY = 85;
+      doc.text("Services:", 14, currentY);
+      currentY += 8;
+
+      invoice.services.forEach((service, index) => {
+        doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+        currentY += 8;
+      });
+
+      currentY += 5;
+      doc.text(`Total: ₹${invoice.total}`, 14, currentY);
+
+      // Save file
+      const safeName = invoice.customerName.replace(/\s+/g, '_');
+      doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
+    });
+
+    toast.success("All invoices saved as PDFs");
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
@@ -103,6 +138,12 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="flex justify-end mb-4 gap-2">
+          <Button onClick={saveAllInvoicesAsPDF}>
+            Save All Invoices to PDFs
+          </Button>
+        </div>
+
         <ScrollArea className="h-[600px] w-full">
           <div className="space-y-4">
             {invoices.map((invoice) => (
