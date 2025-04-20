@@ -1,11 +1,11 @@
 
-import { Calendar, LayoutList, Plus, Settings } from "lucide-react";
+import { LayoutList, Plus, Settings, Edit2, Trash2 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -34,13 +34,6 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <div className="p-4">
-            <img 
-              src="/lovable-uploads/9ca2f662-ce8c-43b6-a52b-5e8eac4613c8.png"
-              alt="GM Car AC Service Logo"
-              className="w-full mb-4"
-            />
-          </div>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
