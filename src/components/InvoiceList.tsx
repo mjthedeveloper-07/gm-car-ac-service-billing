@@ -1,10 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Wallet, Download, Phone } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
+import ReactDOMServer from 'react-dom/server';
 
 interface ServiceItem {
   description: string;
@@ -15,7 +15,7 @@ interface Invoice {
   id: string;
   date: string;
   customerName: string;
-  customerPhone: string;  // Added phone number to the interface
+  customerPhone: string;
   vehicleModel: string;
   vehicleNumber: string;
   services: ServiceItem[];
@@ -31,13 +31,8 @@ const InvoiceList = () => {
   }, []);
 
   const downloadInvoice = (invoice: Invoice) => {
-    const invoiceElement = document.createElement('div');
-    invoiceElement.style.position = 'absolute';
-    invoiceElement.style.left = '-9999px';
-    document.body.appendChild(invoiceElement);
-
-    // Render the PrintableInvoice component into the hidden div
-    const content = <PrintableInvoice {...invoice} />;
+    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
+    
     const printWindow = window.open('', '_blank');
     
     if (printWindow) {
@@ -46,18 +41,27 @@ const InvoiceList = () => {
           <head>
             <title>Invoice - ${invoice.id}</title>
             <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+            <style>
+              @media print {
+                body {
+                  print-color-adjust: exact;
+                  -webkit-print-color-adjust: exact;
+                }
+              }
+            </style>
           </head>
           <body>
-            ${invoiceElement.innerHTML}
+            ${invoiceHTML}
           </body>
         </html>
       `);
       
       printWindow.document.close();
-      printWindow.print();
+      
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
     }
-
-    document.body.removeChild(invoiceElement);
   };
 
   return (
