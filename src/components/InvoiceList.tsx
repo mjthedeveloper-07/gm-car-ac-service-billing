@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wallet, Download, Phone } from 'lucide-react';
+import { Wallet, Download, Phone, Calendar } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
+import { format } from 'date-fns';
 
 interface ServiceItem {
   description: string;
@@ -27,7 +28,10 @@ const InvoiceList = () => {
 
   useEffect(() => {
     const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    setInvoices(storedInvoices);
+    setInvoices(storedInvoices.map((invoice: Invoice) => ({
+      ...invoice,
+      date: format(new Date(invoice.date), 'PPP')
+    })));
   }, []);
 
   const downloadInvoice = (invoice: Invoice) => {
@@ -65,7 +69,7 @@ const InvoiceList = () => {
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto mt-8">
+    <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="h-6 w-6" />
@@ -73,16 +77,16 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[400px] w-full">
+        <ScrollArea className="h-[600px] w-full">
           <div className="space-y-4">
             {invoices.map((invoice) => (
-              <Card key={invoice.id} className="p-4">
+              <Card key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex justify-between items-start">
                   <div>
                     <h3 className="font-semibold">{invoice.customerName}</h3>
                     {invoice.customerPhone && (
                       <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Phone className="h-4 w-4 text-gray-500" />
+                        <Phone className="h-4 w-4" />
                         {invoice.customerPhone}
                       </p>
                     )}
@@ -93,7 +97,10 @@ const InvoiceList = () => {
                   <div className="flex items-center gap-4">
                     <div className="text-right">
                       <p className="font-semibold">₹{invoice.total}</p>
-                      <p className="text-sm text-gray-500">{invoice.date}</p>
+                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {invoice.date}
+                      </p>
                     </div>
                     <Button
                       variant="outline"
