@@ -31,7 +31,7 @@ interface ServiceItem {
 
 interface Invoice {
   id: string;
-  date: string;
+  date: string; // always holds raw (unformatted) date here
   customerName: string;
   customerPhone: string;
   vehicleModel: string;
@@ -40,7 +40,7 @@ interface Invoice {
   total: number;
 }
 
-// Utility to parse invoice date as Date object (since some may already be formatted)
+// Utility to parse invoice date as Date object
 const parseInvoiceDate = (date: string) => {
   const d = new Date(date);
   return isNaN(d.getTime()) ? parseISO(date) : d;
@@ -56,35 +56,26 @@ const InvoiceList = () => {
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
+  // Load from localStorage as raw data (no date formatting here)
   useEffect(() => {
     const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    const withFormattedDate = storedInvoices.map((invoice: Invoice) => ({
-      ...invoice,
-      date: format(new Date(invoice.date), 'PPP'),
-    }));
-    setInvoices(withFormattedDate);
-    setFilteredInvoices(withFormattedDate);
+    setInvoices(storedInvoices);
+    setFilteredInvoices(storedInvoices);
   }, []);
 
-  const filterInvoices = () => {
+  // Run filtering when searchVehicle or dateRange changes
+  useEffect(() => {
     let result = invoices;
 
-    // Filter by vehicle number if input is set
     if (searchVehicle.trim() !== "") {
       result = result.filter(invoice =>
         invoice.vehicleNumber.toLowerCase().includes(searchVehicle.trim().toLowerCase())
       );
     }
 
-    // Filter by date range if both from and to are set
     if (dateRange.from && dateRange.to) {
       result = result.filter(invoice => {
-        // original invoice.date is formatted, need raw:
-        const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-        const original = storedInvoices.find((inv: Invoice) => inv.id === invoice.id);
-        const dateObj = original ? parseInvoiceDate(original.date) : new Date(invoice.date);
-
-        // Include if date is between (inclusive)
+        const dateObj = parseInvoiceDate(invoice.date);
         return (
           (isAfter(dateObj, dateRange.from) || isEqual(dateObj, dateRange.from)) &&
           (isBefore(dateObj, dateRange.to) || isEqual(dateObj, dateRange.to))
@@ -93,7 +84,7 @@ const InvoiceList = () => {
     }
 
     setFilteredInvoices(result);
-  };
+  }, [invoices, searchVehicle, dateRange]);
 
   const resetFilters = () => {
     setSearchVehicle("");
@@ -152,7 +143,7 @@ const InvoiceList = () => {
       doc.text(`Invoice #${invoice.id}`, 14, 20);
 
       doc.setFontSize(12);
-      doc.text(`Date: ${invoice.date}`, 14, 30);
+      doc.text(`Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}`, 14, 30);
       doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
       doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
       doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
@@ -187,7 +178,7 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Search section */}
+        {/* Search section: Search by date range and vehicle */}
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
           {/* Date Range Picker */}
           <Popover>
@@ -235,8 +226,11 @@ const InvoiceList = () => {
           {/* Search and Reset Buttons */}
           <Button
             variant="secondary"
-            onClick={filterInvoices}
+            onClick={() => {
+              // No need to do anything; the effect will auto-filter on state change
+            }}
             className="flex items-center gap-1"
+            type="button"
           >
             <SearchIcon className="h-4 w-4" /> Search
           </Button>
@@ -244,6 +238,7 @@ const InvoiceList = () => {
             variant="ghost"
             onClick={resetFilters}
             className="flex items-center gap-1"
+            type="button"
           >
             Reset
           </Button>
@@ -278,7 +273,7 @@ const InvoiceList = () => {
                       <p className="font-semibold">₹{invoice.total}</p>
                       <p className="text-sm text-gray-500 flex items-center gap-1">
                         <Calendar className="h-4 w-4" />
-                        {invoice.date}
+                        {format(parseInvoiceDate(invoice.date), 'PPP')}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -315,7 +310,6 @@ const InvoiceList = () => {
           </div>
         </ScrollArea>
       </CardContent>
-
       <AlertDialog open={!!invoiceToDelete} onOpenChange={() => setInvoiceToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
