@@ -1,12 +1,13 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wallet, Download, Phone, Calendar, Edit2, Trash2 } from 'lucide-react';
+import { Wallet, Download, Phone, Calendar, Edit2, Trash2, Search as SearchIcon, Car as CarIcon } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
-import { format } from 'date-fns';
+import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import {
   AlertDialog,
@@ -19,6 +20,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { Calendar as ShadCalendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 
 interface ServiceItem {
   description: string;
@@ -36,24 +40,70 @@ interface Invoice {
   total: number;
 }
 
+// Utility to parse invoice date as Date object (since some may already be formatted)
+const parseInvoiceDate = (date: string) => {
+  const d = new Date(date);
+  return isNaN(d.getTime()) ? parseISO(date) : d;
+};
+
 const InvoiceList = () => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+
+  // Search state
+  const [searchVehicle, setSearchVehicle] = useState("");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
   useEffect(() => {
     const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    setInvoices(storedInvoices.map((invoice: Invoice) => ({
+    const withFormattedDate = storedInvoices.map((invoice: Invoice) => ({
       ...invoice,
-      date: format(new Date(invoice.date), 'PPP')
-    })));
+      date: format(new Date(invoice.date), 'PPP'),
+    }));
+    setInvoices(withFormattedDate);
+    setFilteredInvoices(withFormattedDate);
   }, []);
+
+  const filterInvoices = () => {
+    let result = invoices;
+
+    // Filter by vehicle number if input is set
+    if (searchVehicle.trim() !== "") {
+      result = result.filter(invoice =>
+        invoice.vehicleNumber.toLowerCase().includes(searchVehicle.trim().toLowerCase())
+      );
+    }
+
+    // Filter by date range if both from and to are set
+    if (dateRange.from && dateRange.to) {
+      result = result.filter(invoice => {
+        // original invoice.date is formatted, need raw:
+        const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+        const original = storedInvoices.find((inv: Invoice) => inv.id === invoice.id);
+        const dateObj = original ? parseInvoiceDate(original.date) : new Date(invoice.date);
+
+        // Include if date is between (inclusive)
+        return (
+          (isAfter(dateObj, dateRange.from) || isEqual(dateObj, dateRange.from)) &&
+          (isBefore(dateObj, dateRange.to) || isEqual(dateObj, dateRange.to))
+        );
+      });
+    }
+
+    setFilteredInvoices(result);
+  };
+
+  const resetFilters = () => {
+    setSearchVehicle("");
+    setDateRange({ from: undefined, to: undefined });
+    setFilteredInvoices(invoices);
+  };
 
   const downloadInvoice = (invoice: Invoice) => {
     const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
-    
     const printWindow = window.open('', '_blank');
-    
     if (printWindow) {
       printWindow.document.write(`
         <html>
@@ -74,9 +124,7 @@ const InvoiceList = () => {
           </body>
         </html>
       `);
-      
       printWindow.document.close();
-      
       setTimeout(() => {
         printWindow.print();
       }, 500);
@@ -91,12 +139,13 @@ const InvoiceList = () => {
     const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
     localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
     setInvoices(updatedInvoices);
+    setFilteredInvoices(updatedInvoices);
     toast.success("Invoice deleted successfully");
     setInvoiceToDelete(null);
   };
 
   const saveAllInvoicesAsPDF = () => {
-    invoices.forEach((invoice) => {
+    filteredInvoices.forEach((invoice) => {
       const doc = new jsPDF();
 
       doc.setFontSize(16);
@@ -138,6 +187,69 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Search section */}
+        <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
+          {/* Date Range Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="min-w-[230px] justify-start text-left font-normal"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {dateRange.from && dateRange.to
+                  ? `${format(dateRange.from, "PPP")} - ${format(dateRange.to, "PPP")}`
+                  : "Search by Date Range"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <ShadCalendar
+                mode="range"
+                selected={{
+                  from: dateRange.from,
+                  to: dateRange.to,
+                }}
+                onSelect={(range) =>
+                  setDateRange({
+                    from: range?.from,
+                    to: range?.to,
+                  })
+                }
+                numberOfMonths={2}
+                initialFocus
+                className="p-3 pointer-events-auto"
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Vehicle Number Input */}
+          <div className="flex items-center gap-2">
+            <CarIcon className="h-4 w-4 text-gray-500" />
+            <Input
+              value={searchVehicle}
+              onChange={e => setSearchVehicle(e.target.value)}
+              placeholder="Search by Vehicle Number"
+              className="max-w-[180px]"
+            />
+          </div>
+          {/* Search and Reset Buttons */}
+          <Button
+            variant="secondary"
+            onClick={filterInvoices}
+            className="flex items-center gap-1"
+          >
+            <SearchIcon className="h-4 w-4" /> Search
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={resetFilters}
+            className="flex items-center gap-1"
+          >
+            Reset
+          </Button>
+        </div>
+
+        {/* Actions */}
         <div className="flex justify-end mb-4 gap-2">
           <Button onClick={saveAllInvoicesAsPDF}>
             Save All Invoices to PDFs
@@ -146,7 +258,7 @@ const InvoiceList = () => {
 
         <ScrollArea className="h-[600px] w-full">
           <div className="space-y-4">
-            {invoices.map((invoice) => (
+            {filteredInvoices.map((invoice) => (
               <Card key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex justify-between items-start">
                   <div>
@@ -197,8 +309,8 @@ const InvoiceList = () => {
                 </div>
               </Card>
             ))}
-            {invoices.length === 0 && (
-              <p className="text-center text-gray-500 py-4">No invoices yet</p>
+            {filteredInvoices.length === 0 && (
+              <p className="text-center text-gray-500 py-4">No invoices found</p>
             )}
           </div>
         </ScrollArea>
