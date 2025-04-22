@@ -94,7 +94,7 @@ const InvoiceForm = () => {
               <Label htmlFor="customerPhone">Customer Phone</Label>
               <div className="flex items-center gap-2 relative">
                 <Phone className="h-4 w-4 text-gray-500 absolute left-3" />
-                <Input id="customerPhone" type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="Enter customer phone number" className="pl-10 bg-transparent" />
+                <Input id="customerPhone" type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value)} placeholder="Enter customer phone number" className="pl-10 bg-white" />
               </div>
             </div>
             <div className="space-y-2">
@@ -103,7 +103,7 @@ const InvoiceForm = () => {
             </div>
             <div className="space-y-2">
               <Label htmlFor="vehicleNumber">Vehicle Number</Label>
-              <Input id="vehicleNumber" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} required />
+              <Input id="vehicleNumber" value={vehicleNumber} onChange={e => setVehicleNumber(e.target.value)} required className="bg-white" />
             </div>
           </div>
 
@@ -118,11 +118,11 @@ const InvoiceForm = () => {
             {services.map((service, index) => <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor={`service-${index}`}>Service Description</Label>
-                  <Input id={`service-${index}`} value={service.description} onChange={e => updateService(index, 'description', e.target.value)} required />
+                  <Input id={`service-${index}`} value={service.description} onChange={e => updateService(index, 'description', e.target.value)} required className="bg-white" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor={`amount-${index}`}>Amount</Label>
-                  <Input id={`amount-${index}`} type="number" value={service.amount} onChange={e => updateService(index, 'amount', e.target.value)} required />
+                  <Input id={`amount-${index}`} type="number" value={service.amount} onChange={e => updateService(index, 'amount', e.target.value)} required className="bg-white" />
                 </div>
               </div>)}
           </div>
@@ -131,9 +131,7 @@ const InvoiceForm = () => {
             <div className="text-lg font-semibold">
               Total: ₹{calculateTotal()}
             </div>
-            <button type="submit" className="button-sass text-base">
-              Create Invoice
-            </button>
+            <button type="submit" className="button-sass mx-[5px] my-[6px] py-[2px] px-[3px] text-justify text-slate-50 font-thin bg-black text-sm rounded-none">Generate Invoice</button>
           </div>
         </form>
       </CardContent>
