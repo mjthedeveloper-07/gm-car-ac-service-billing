@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +15,7 @@ interface Invoice {
   id: string;
   date: string;
   customerName: string;
-  customerPhone: string;  // Added phone number to the interface
+  customerPhone: string;
   vehicleModel: string;
   vehicleNumber: string;
   services: ServiceItem[];
@@ -26,7 +25,7 @@ interface Invoice {
 const InvoiceForm = () => {
   const { toast } = useToast();
   const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');  // New state for phone number
+  const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
@@ -56,17 +55,15 @@ const InvoiceForm = () => {
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
       customerName,
-      customerPhone,  // Include phone number in the invoice
+      customerPhone,
       vehicleModel,
       vehicleNumber,
       services,
       total: calculateTotal()
     };
 
-    // Get existing invoices from localStorage
     const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     
-    // Add new invoice
     localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
 
     toast({
@@ -74,16 +71,15 @@ const InvoiceForm = () => {
       description: "The invoice has been saved successfully.",
     });
 
-    // Reset form
     setCustomerName('');
-    setCustomerPhone('');  // Reset phone number
+    setCustomerPhone('');
     setVehicleModel('');
     setVehicleNumber('');
     setServices([{ description: '', amount: 0 }]);
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto">
+    <div className="card-gradient-sass w-full max-w-3xl mx-auto my-5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Receipt className="h-6 w-6" />
@@ -173,11 +169,13 @@ const InvoiceForm = () => {
             <div className="text-lg font-semibold">
               Total: ₹{calculateTotal()}
             </div>
-            <Button type="submit">Create Invoice</Button>
+            <button type="submit" className="button-sass text-base">
+              Create Invoice
+            </button>
           </div>
         </form>
       </CardContent>
-    </Card>
+    </div>
   );
 };
 

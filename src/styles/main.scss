@@ -1,0 +1,29 @@
+
+/* Example of using Sass variables, nesting, and mixins along with Tailwind classes */
+
+$primary-gradient: linear-gradient(90deg, #fdfcfb 0%, #e2d1c3 100%);
+$custom-radius: 1.25rem;
+
+.card-gradient-sass {
+  background: $primary-gradient;
+  border-radius: $custom-radius;
+  box-shadow: 0 4px 16px rgba(100, 98, 96, 0.09);
+  border: 1.5px solid #ede7da;
+  padding: 1.5rem;
+  @apply transition-shadow duration-200 hover:shadow-xl;
+}
+
+.button-sass {
+  background: #9b87f5; // matches "Primary Purple" from palette
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  transition: background 0.2s;
+  cursor: pointer;
+  @apply shadow-lg hover:scale-105;
+  &:hover {
+    background: #7E69AB;
+  }
+}
