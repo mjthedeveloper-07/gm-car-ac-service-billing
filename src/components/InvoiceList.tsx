@@ -1,10 +1,19 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wallet, Download, Phone, Calendar, Edit2, Trash2, Search as SearchIcon, Car as CarIcon } from 'lucide-react';
+import { 
+  Wallet, 
+  Download, 
+  Phone, 
+  Calendar, 
+  Edit2, 
+  Trash2, 
+  Search as SearchIcon, 
+  Car as CarIcon,
+  Whatsapp 
+} from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
 import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
@@ -31,7 +40,7 @@ interface ServiceItem {
 
 interface Invoice {
   id: string;
-  date: string; // always holds raw (unformatted) date here
+  date: string;
   customerName: string;
   customerPhone: string;
   vehicleModel: string;
@@ -40,7 +49,6 @@ interface Invoice {
   total: number;
 }
 
-// Utility to parse invoice date as Date object
 const parseInvoiceDate = (date: string) => {
   const d = new Date(date);
   return isNaN(d.getTime()) ? parseISO(date) : d;
@@ -51,19 +59,15 @@ const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
-
-  // Search state
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
-  // Load from localStorage as raw data (no date formatting here)
   useEffect(() => {
     const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     setInvoices(storedInvoices);
     setFilteredInvoices(storedInvoices);
   }, []);
 
-  // Run filtering when searchVehicle or dateRange changes
   useEffect(() => {
     let result = invoices;
 
@@ -135,6 +139,20 @@ const InvoiceList = () => {
     setInvoiceToDelete(null);
   };
 
+  const handleWhatsAppShare = (invoice: Invoice) => {
+    const message = `📄 Invoice Details:\n\n` +
+      `🆔 ID: ${invoice.id}\n` +
+      `📅 Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}\n` +
+      `👤 Customer: ${invoice.customerName}\n` +
+      `📱 Phone: ${invoice.customerPhone}\n` +
+      `🚗 Vehicle: ${invoice.vehicleModel} (${invoice.vehicleNumber})\n` +
+      `💵 Total: ₹${invoice.total}\n\n` +
+      `🔧 Services:\n${invoice.services.map((s, i) => `${i + 1}. ${s.description} - ₹${s.amount}`).join('\n')}`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+  };
+
   const saveAllInvoicesAsPDF = () => {
     filteredInvoices.forEach((invoice) => {
       const doc = new jsPDF();
@@ -161,7 +179,6 @@ const InvoiceList = () => {
       currentY += 5;
       doc.text(`Total: ₹${invoice.total}`, 14, currentY);
 
-      // Save file
       const safeName = invoice.customerName.replace(/\s+/g, '_');
       doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
     });
@@ -178,9 +195,7 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Search section: Search by date range and vehicle */}
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
-          {/* Date Range Picker */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -213,7 +228,6 @@ const InvoiceList = () => {
             </PopoverContent>
           </Popover>
 
-          {/* Vehicle Number Input */}
           <div className="flex items-center gap-2">
             <CarIcon className="h-4 w-4 text-gray-500" />
             <Input
@@ -223,12 +237,8 @@ const InvoiceList = () => {
               className="max-w-[180px]"
             />
           </div>
-          {/* Search and Reset Buttons */}
           <Button
             variant="secondary"
-            onClick={() => {
-              // No need to do anything; the effect will auto-filter on state change
-            }}
             className="flex items-center gap-1"
             type="button"
           >
@@ -244,7 +254,6 @@ const InvoiceList = () => {
           </Button>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end mb-4 gap-2">
           <Button onClick={saveAllInvoicesAsPDF}>
             Save All Invoices to PDFs
@@ -290,6 +299,14 @@ const InvoiceList = () => {
                         onClick={() => downloadInvoice(invoice)}
                       >
                         <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleWhatsAppShare(invoice)}
+                        className="text-green-600 hover:text-green-700"
+                      >
+                        <Whatsapp className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
