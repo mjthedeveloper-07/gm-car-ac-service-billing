@@ -1,14 +1,11 @@
-
 import { SidebarProvider } from "@/components/ui/sidebar";
 import InvoiceForm from "@/components/InvoiceForm";
 import InvoiceList from "@/components/InvoiceList";
 import CompanySettings from "@/components/CompanySettings";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AppSidebar } from "@/components/AppSidebar";
-
 const Index = () => {
-  return (
-    <SidebarProvider>
+  return <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <AppSidebar />
         <div className="flex-1 p-8">
@@ -18,7 +15,7 @@ const Index = () => {
               <TabsTrigger value="list">Invoice List</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
-            <TabsContent value="invoice">
+            <TabsContent value="invoice" className="rounded-md bg-slate-200">
               <InvoiceForm />
             </TabsContent>
             <TabsContent value="list">
@@ -30,8 +27,6 @@ const Index = () => {
           </Tabs>
         </div>
       </div>
-    </SidebarProvider>
-  );
+    </SidebarProvider>;
 };
-
 export default Index;
