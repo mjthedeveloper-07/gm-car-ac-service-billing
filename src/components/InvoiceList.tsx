@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,6 +74,35 @@ const groupInvoicesByDate = (invoices: Invoice[]) => {
   return sortedGrouped;
 };
 
+function downloadInvoicePdf(invoice: Invoice) {
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text(`Invoice #${invoice.id}`, 14, 20);
+
+  doc.setFontSize(12);
+  doc.text(`Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}`, 14, 30);
+  doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
+  doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
+  doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
+  doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
+
+  let currentY = 85;
+  doc.text("Services:", 14, currentY);
+  currentY += 8;
+
+  invoice.services.forEach((service, index) => {
+    doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+    currentY += 8;
+  });
+
+  currentY += 5;
+  doc.text(`Total: ₹${invoice.total}`, 14, currentY);
+
+  const safeName = invoice.customerName.replace(/\s+/g, '_');
+  doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
+}
+
 const InvoiceList = () => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -118,33 +146,7 @@ const InvoiceList = () => {
   };
 
   const downloadInvoice = (invoice: Invoice) => {
-    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Invoice - ${invoice.id}</title>
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-            <style>
-              @media print {
-                body {
-                  print-color-adjust: exact;
-                  -webkit-print-color-adjust: exact;
-                }
-              }
-            </style>
-          </head>
-          <body>
-            ${invoiceHTML}
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      setTimeout(() => {
-        printWindow.print();
-      }, 500);
-    }
+    downloadInvoicePdf(invoice);
   };
 
   const handleEdit = (id: string) => {
@@ -161,6 +163,8 @@ const InvoiceList = () => {
   };
 
   const handleWhatsAppShare = (invoice: Invoice) => {
+    downloadInvoicePdf(invoice);
+
     const message = `📄 Invoice Details:\n\n` +
       `🆔 ID: ${invoice.id}\n` +
       `📅 Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}\n` +
@@ -171,39 +175,16 @@ const InvoiceList = () => {
       `🔧 Services:\n${invoice.services.map((s, i) => `${i + 1}. ${s.description} - ₹${s.amount}`).join('\n')}`;
 
     const encodedMessage = encodeURIComponent(message);
+
     window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+
+    toast.info("PDF downloaded. Please attach it manually in WhatsApp Web and send your message.");
   };
 
   const saveAllInvoicesAsPDF = () => {
     filteredInvoices.forEach((invoice) => {
-      const doc = new jsPDF();
-
-      doc.setFontSize(16);
-      doc.text(`Invoice #${invoice.id}`, 14, 20);
-
-      doc.setFontSize(12);
-      doc.text(`Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}`, 14, 30);
-      doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
-      doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
-      doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
-      doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
-
-      let currentY = 85;
-      doc.text("Services:", 14, currentY);
-      currentY += 8;
-
-      invoice.services.forEach((service, index) => {
-        doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
-        currentY += 8;
-      });
-
-      currentY += 5;
-      doc.text(`Total: ₹${invoice.total}`, 14, currentY);
-
-      const safeName = invoice.customerName.replace(/\s+/g, '_');
-      doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
+      downloadInvoicePdf(invoice);
     });
-
     toast.success("All invoices saved as PDFs");
   };
 
