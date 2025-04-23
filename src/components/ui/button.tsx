@@ -6,18 +6,18 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 ease-in-out hover:scale-[1.02] hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-hover-lift hover:shadow-purple-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/90 hover-gradient-transform",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-[1.02]",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 hover:scale-105",
         outline:
-          "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover-glow",
+          "border border-input bg-background hover:bg-accent hover:text-accent-foreground hover:shadow-hover-glow hover:scale-105",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover-lift",
-        ghost: "hover:bg-accent hover:text-accent-foreground hover-gradient-transform",
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 hover:shadow-hover-lift hover:scale-105",
+        ghost: "hover:bg-accent hover:text-accent-foreground hover:shadow-hover-lift hover:scale-105",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
