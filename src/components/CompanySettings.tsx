@@ -21,12 +21,12 @@ const CompanySettings = () => {
   const { toast } = useToast();
   const [details, setDetails] = useState<CompanyDetails>({
     name: 'GM CAR A/C SERVICE & MULTIBRAND',
-    address: 'No:16 Gangai Amman Kallikuppam, Ambattur Chennai-53 Tamilnadu',
+    address: '123 Service Road, Mechanical District',
     city: 'Chennai',
-    pincode: '600053',
-    phone: '+91 84280 00085',
-    email: 'gmautocool@gmail.com',
-    website: 'www.gmcaracservice.com'
+    pincode: '600001',
+    phone: '+91 98765 43210',
+    email: 'gmservice@example.com',
+    website: 'www.gmcarservice.com'
   });
 
   useEffect(() => {
