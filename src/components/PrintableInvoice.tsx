@@ -38,12 +38,12 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
 }) => {
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
     name: 'GM CAR A/C SERVICE & MULTIBRAND',
-    address: '123 Service Road, Mechanical District',
+    address: 'No:16 Gangai Amman Kallikuppam, Ambattur Chennai-53 Tamilnadu',
     city: 'Chennai',
-    pincode: '600001',
-    phone: '+91 98765 43210',
-    email: 'gmservice@example.com',
-    website: 'www.gmcarservice.com'
+    pincode: '600053',
+    phone: '+91 84280 00085',
+    email: 'gmautocool@gmail.com',
+    website: 'www.gmcaracservice.com'
   });
 
   useEffect(() => {
@@ -68,9 +68,11 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
             </div>
           </div>
           <div className="text-right">
-            <div className="w-32 h-32 bg-gray-100 flex items-center justify-center border">
-              <span className="text-gray-400">Logo Space</span>
-            </div>
+            <img 
+              src="/lovable-uploads/a502963b-46f0-4da9-a374-6d5b6261e7d4.png"
+              alt="GM Car AC Service Logo"
+              className="w-32 h-32 object-contain"
+            />
           </div>
         </div>
       </div>

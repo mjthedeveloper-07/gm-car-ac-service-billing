@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import compiled Sass styles */
+@import './styles/main.scss';
+
 @layer base {
   :root {
     --background: 0 0% 100%;
