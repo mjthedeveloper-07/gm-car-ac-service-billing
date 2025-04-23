@@ -12,7 +12,7 @@ import {
   Trash2, 
   Search as SearchIcon, 
   Car as CarIcon,
-  Whatsapp 
+  Whatsapp,
 } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
@@ -52,6 +52,26 @@ interface Invoice {
 const parseInvoiceDate = (date: string) => {
   const d = new Date(date);
   return isNaN(d.getTime()) ? parseISO(date) : d;
+};
+
+const groupInvoicesByDate = (invoices: Invoice[]) => {
+  const grouped: Record<string, Invoice[]> = {};
+  invoices.forEach(inv => {
+    const dateKey = format(parseInvoiceDate(inv.date), 'PPP');
+    if (!grouped[dateKey]) grouped[dateKey] = [];
+    grouped[dateKey].push(inv);
+  });
+  const sortedKeys = Object.keys(grouped).sort(
+    (a, b) => 
+      parseInvoiceDate(b).getTime() - parseInvoiceDate(a).getTime()
+  );
+  const sortedGrouped: Record<string, Invoice[]> = {};
+  for (const key of sortedKeys) {
+    sortedGrouped[key] = grouped[key].sort(
+      (a, b) => parseInvoiceDate(b.date).getTime() - parseInvoiceDate(a.date).getTime()
+    );
+  }
+  return sortedGrouped;
 };
 
 const InvoiceList = () => {
@@ -186,8 +206,13 @@ const InvoiceList = () => {
     toast.success("All invoices saved as PDFs");
   };
 
+  const gradientStyle = "bg-gradient-to-r from-blue-500 via-purple-500 to-pink-400 text-white";
+  const groupCardBg = "bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50";
+
+  const grouped = groupInvoicesByDate(filteredInvoices);
+
   return (
-    <Card className="w-full max-w-3xl mx-auto">
+    <Card className="w-full max-w-3xl mx-auto shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Wallet className="h-6 w-6" />
@@ -200,7 +225,13 @@ const InvoiceList = () => {
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="min-w-[230px] justify-start text-left font-normal"
+                className={`min-w-[230px] justify-start text-left font-normal ${gradientStyle}`}
+                style={{
+                  background:
+                    'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 48%, #ec4899 100%)',
+                  color: '#fff',
+                  border: 'none'
+                }}
               >
                 <Calendar className="mr-2 h-4 w-4" />
                 {dateRange.from && dateRange.to
@@ -234,20 +265,26 @@ const InvoiceList = () => {
               value={searchVehicle}
               onChange={e => setSearchVehicle(e.target.value)}
               placeholder="Search by Vehicle Number"
-              className="max-w-[180px]"
+              className="max-w-[180px] border-2 border-blue-500 focus:border-purple-500"
             />
           </div>
           <Button
             variant="secondary"
-            className="flex items-center gap-1"
+            className={`flex items-center gap-1 ${gradientStyle}`}
             type="button"
+            style={{
+              background:
+                'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 48%, #ec4899 100%)',
+              color: '#fff',
+              border: 'none'
+            }}
           >
             <SearchIcon className="h-4 w-4" /> Search
           </Button>
           <Button
             variant="ghost"
             onClick={resetFilters}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-blue-700 hover:underline"
             type="button"
           >
             Reset
@@ -255,75 +292,106 @@ const InvoiceList = () => {
         </div>
 
         <div className="flex justify-end mb-4 gap-2">
-          <Button onClick={saveAllInvoicesAsPDF}>
+          <Button
+            onClick={saveAllInvoicesAsPDF}
+            className={gradientStyle}
+            style={{
+              background:
+                'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 48%, #ec4899 100%)',
+              color: '#fff',
+              border: 'none'
+            }}
+          >
             Save All Invoices to PDFs
           </Button>
         </div>
 
         <ScrollArea className="h-[600px] w-full">
-          <div className="space-y-4">
-            {filteredInvoices.map((invoice) => (
-              <Card key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold">{invoice.customerName}</h3>
-                    {invoice.customerPhone && (
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Phone className="h-4 w-4" />
-                        {invoice.customerPhone}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-500">
-                      {invoice.vehicleModel} - {invoice.vehicleNumber}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold">₹{invoice.total}</p>
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {format(parseInvoiceDate(invoice.date), 'PPP')}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleEdit(invoice.id)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => downloadInvoice(invoice)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleWhatsAppShare(invoice)}
-                        className="text-green-600 hover:text-green-700"
-                      >
-                        <Whatsapp className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setInvoiceToDelete(invoice.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))}
-            {filteredInvoices.length === 0 && (
+          <div className="space-y-6">
+            {Object.keys(grouped).length === 0 && (
               <p className="text-center text-gray-500 py-4">No invoices found</p>
             )}
+            {Object.entries(grouped).map(([date, groupInvs]) => (
+              <div key={date} className={`rounded-xl shadow mb-4 ${groupCardBg} `}>
+                <div
+                  className="text-lg font-bold py-2 px-4 flex items-center gap-2"
+                  style={{
+                    background:
+                      'linear-gradient(90deg, #3b82f6 0%, #8b5cf6 48%, #ec4899 100%)',
+                    color: '#fff',
+                    borderTopLeftRadius: '0.75rem',
+                    borderTopRightRadius: '0.75rem'
+                  }}
+                >
+                  <Calendar className="h-5 w-5" />
+                  {date}
+                </div>
+                <div className="p-3 space-y-2">
+                  {groupInvs.map((invoice) => (
+                    <Card key={invoice.id} className="p-4 hover:scale-105 transition-transform duration-200 hover:shadow-2xl bg-white">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-semibold">{invoice.customerName}</h3>
+                          {invoice.customerPhone && (
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              <Phone className="h-4 w-4" />
+                              {invoice.customerPhone}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-500">
+                            {invoice.vehicleModel} - {invoice.vehicleNumber}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="font-semibold">₹{invoice.total}</p>
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              <Calendar className="h-4 w-4" />
+                              {format(parseInvoiceDate(invoice.date), 'PPP')}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleEdit(invoice.id)}
+                              className="hover:border-purple-500 hover:bg-purple-50 transition-colors"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => downloadInvoice(invoice)}
+                              className="hover:border-blue-500 hover:bg-blue-50 transition-colors"
+                            >
+                              <Download className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleWhatsAppShare(invoice)}
+                              className="text-green-600 hover:bg-green-50 hover:scale-110 hover:text-green-800 transition-all"
+                              aria-label="Share on WhatsApp"
+                            >
+                              <Whatsapp className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setInvoiceToDelete(invoice.id)}
+                              className="text-red-500 hover:bg-red-50 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </ScrollArea>
       </CardContent>
