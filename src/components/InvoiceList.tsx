@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import {
   Trash2, 
   Search as SearchIcon, 
   Car as CarIcon,
-  Whatsapp,
+  MessageSquare,
 } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
@@ -374,7 +375,7 @@ const InvoiceList = () => {
                               className="text-green-600 hover:bg-green-50 hover:scale-110 hover:text-green-800 transition-all"
                               aria-label="Share on WhatsApp"
                             >
-                              <Whatsapp className="h-4 w-4" />
+                              <MessageSquare className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="outline"
