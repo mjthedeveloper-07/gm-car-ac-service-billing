@@ -93,6 +93,15 @@
   }
 }
 
+@layer components {
+  .card-gradient {
+    @apply bg-gradient-to-br from-blue-100 via-purple-100 to-pink-50 shadow rounded-xl;
+  }
+  .header-gradient-text {
+    @apply bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent font-bold;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
