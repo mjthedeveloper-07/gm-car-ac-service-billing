@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
+import jsPDF from 'jspdf';
+
 interface ServiceItem {
   description: string;
   amount: number;
@@ -19,6 +21,7 @@ interface Invoice {
   services: ServiceItem[];
   total: number;
 }
+
 const InvoiceForm = () => {
   const {
     toast
@@ -27,10 +30,10 @@ const InvoiceForm = () => {
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
-  const [services, setServices] = useState<ServiceItem[]>([{
-    description: '',
-    amount: 0
-  }]);
+  const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
+  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
+  const [isSharing, setIsSharing] = useState(false);
+
   const addService = () => {
     setServices([...services, {
       description: '',
@@ -49,8 +52,91 @@ const InvoiceForm = () => {
   const calculateTotal = () => {
     return services.reduce((sum, service) => sum + service.amount, 0);
   };
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const generatePDFBlob = (invoice: Invoice): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(16);
+      doc.text(`Invoice #${invoice.id}`, 14, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
+      doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
+      doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
+      doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
+      
+      let currentY = 85;
+      doc.text("Services:", 14, currentY);
+      currentY += 8;
+      
+      invoice.services.forEach((service, index) => {
+        doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+        currentY += 8;
+      });
+      
+      currentY += 5;
+      doc.text(`Total: ₹${invoice.total}`, 14, currentY);
+      
+      const pdfBlob = doc.output('blob');
+      resolve(pdfBlob);
+    });
+  };
+
+  const shareViaZapier = async (invoice: Invoice, pdfBlob: Blob) => {
+    if (!webhookUrl) {
+      toast({
+        title: "Error",
+        description: "Please configure Zapier webhook URL in settings"
+      });
+      return;
+    }
+
+    setIsSharing(true);
+
+    try {
+      // Convert PDF blob to base64
+      const reader = new FileReader();
+      reader.readAsDataURL(pdfBlob);
+      reader.onloadend = async () => {
+        const base64data = reader.result as string;
+        
+        // Send to Zapier webhook
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            customerPhone: invoice.customerPhone,
+            customerName: invoice.customerName,
+            invoiceId: invoice.id,
+            pdfContent: base64data,
+            message: `Hi ${invoice.customerName}, here's your invoice from GM CAR A/C SERVICE & MULTIBRAND.`
+          })
+        });
+
+        toast({
+          title: "Success",
+          description: "Invoice shared successfully"
+        });
+      };
+    } catch (error) {
+      console.error('Error sharing invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to share invoice"
+      });
+    } finally {
+      setIsSharing(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     const invoice: Invoice = {
       id: Date.now().toString(),
       date: new Date().toISOString().split('T')[0],
@@ -61,21 +147,23 @@ const InvoiceForm = () => {
       services,
       total: calculateTotal()
     };
+
+    // Save to localStorage
     const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
-    toast({
-      title: "Invoice Created",
-      description: "The invoice has been saved successfully."
-    });
+
+    // Generate PDF and share via WhatsApp
+    const pdfBlob = await generatePDFBlob(invoice);
+    await shareViaZapier(invoice, pdfBlob);
+
+    // Reset form
     setCustomerName('');
     setCustomerPhone('');
     setVehicleModel('');
     setVehicleNumber('');
-    setServices([{
-      description: '',
-      amount: 0
-    }]);
+    setServices([{ description: '', amount: 0 }]);
   };
+
   return <div className="card-gradient-sass w-full max-w-3xl mx-auto my-5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">

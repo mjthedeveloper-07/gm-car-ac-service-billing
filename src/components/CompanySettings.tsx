@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -19,7 +18,7 @@ interface CompanyDetails {
 
 const CompanySettings = () => {
   const { toast } = useToast();
-  const [details, setDetails] = useState<CompanyDetails>({
+  const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
     name: 'GM CAR A/C SERVICE & MULTIBRAND',
     address: 'No:16 Gangai Amman Kallikuppam, Ambattur Chennai-53 Tamilnadu',
     city: 'Chennai',
@@ -29,33 +28,30 @@ const CompanySettings = () => {
     website: 'www.gmcaracservice.com'
   });
 
+  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
+
   useEffect(() => {
     const savedDetails = localStorage.getItem('companyDetails');
     if (savedDetails) {
-      setDetails(JSON.parse(savedDetails));
+      setCompanyDetails(JSON.parse(savedDetails));
     }
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('companyDetails', JSON.stringify(details));
-    toast({
-      title: "Settings Saved",
-      description: "Company details have been updated successfully.",
-    });
+    localStorage.setItem('companyDetails', JSON.stringify(companyDetails));
+    localStorage.setItem('zapierWebhookUrl', webhookUrl);
+    toast.success("Settings saved successfully");
   };
 
   const handleChange = (field: keyof CompanyDetails, value: string) => {
-    setDetails(prev => ({ ...prev, [field]: value }));
+    setCompanyDetails(prev => ({ ...prev, [field]: value }));
   };
 
   return (
-    <Card className="w-full max-w-3xl mx-auto mt-8">
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-6 w-6" />
-          Company Settings
-        </CardTitle>
+        <CardTitle>Company Settings</CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,7 +60,7 @@ const CompanySettings = () => {
               <Label htmlFor="name">Company Name</Label>
               <Input
                 id="name"
-                value={details.name}
+                value={companyDetails.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 required
               />
@@ -73,7 +69,7 @@ const CompanySettings = () => {
               <Label htmlFor="address">Address</Label>
               <Input
                 id="address"
-                value={details.address}
+                value={companyDetails.address}
                 onChange={(e) => handleChange('address', e.target.value)}
                 required
               />
@@ -82,7 +78,7 @@ const CompanySettings = () => {
               <Label htmlFor="city">City</Label>
               <Input
                 id="city"
-                value={details.city}
+                value={companyDetails.city}
                 onChange={(e) => handleChange('city', e.target.value)}
                 required
               />
@@ -91,7 +87,7 @@ const CompanySettings = () => {
               <Label htmlFor="pincode">PIN Code</Label>
               <Input
                 id="pincode"
-                value={details.pincode}
+                value={companyDetails.pincode}
                 onChange={(e) => handleChange('pincode', e.target.value)}
                 required
               />
@@ -100,7 +96,7 @@ const CompanySettings = () => {
               <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
-                value={details.phone}
+                value={companyDetails.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 required
               />
@@ -110,7 +106,7 @@ const CompanySettings = () => {
               <Input
                 id="email"
                 type="email"
-                value={details.email}
+                value={companyDetails.email}
                 onChange={(e) => handleChange('email', e.target.value)}
                 required
               />
@@ -119,15 +115,28 @@ const CompanySettings = () => {
               <Label htmlFor="website">Website</Label>
               <Input
                 id="website"
-                value={details.website}
+                value={companyDetails.website}
                 onChange={(e) => handleChange('website', e.target.value)}
                 required
               />
             </div>
           </div>
-          <div className="flex justify-end">
-            <Button type="submit">Save Settings</Button>
+          <div className="space-y-2">
+            <Label htmlFor="webhookUrl">Zapier Webhook URL (for WhatsApp sharing)</Label>
+            <Input
+              id="webhookUrl"
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              placeholder="Enter your Zapier webhook URL"
+              className="w-full"
+            />
+            <p className="text-sm text-gray-500">
+              This webhook will be used to automatically share invoice PDFs via WhatsApp.
+            </p>
           </div>
+          <Button type="submit" className="w-full">
+            Save Settings
+          </Button>
         </form>
       </CardContent>
     </Card>
