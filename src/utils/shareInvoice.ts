@@ -21,6 +21,11 @@ export const shareInvoice = async ({
     return;
   }
 
+  // Add country code if not present
+  const formattedPhone = customerPhone.startsWith('+') 
+    ? customerPhone 
+    : `+91${customerPhone}`; // Assuming India as default country code
+
   try {
     await fetch(webhookUrl, {
       method: 'POST',
@@ -29,7 +34,7 @@ export const shareInvoice = async ({
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        customerPhone,
+        customerPhone: formattedPhone,
         customerName,
         invoiceId,
         pdfContent,

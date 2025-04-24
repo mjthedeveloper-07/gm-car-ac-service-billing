@@ -10,7 +10,7 @@ import ReactDOMServer from 'react-dom/server';
 import jsPDF from 'jspdf';
 import { shareInvoice } from '../utils/shareInvoice';
 import { toast } from "sonner";
-import { isAfter, isBefore, isEqual } from 'date-fns';
+import { isAfter, isBefore, isEqual, format } from 'date-fns';
 import type { Invoice } from '@/types/invoice';
 import { parseInvoiceDate } from '@/utils/dateUtils';
 import DateRangeFilter from './invoice/DateRangeFilter';
