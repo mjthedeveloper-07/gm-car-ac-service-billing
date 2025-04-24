@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -41,7 +42,11 @@ const CompanySettings = () => {
     e.preventDefault();
     localStorage.setItem('companyDetails', JSON.stringify(companyDetails));
     localStorage.setItem('zapierWebhookUrl', webhookUrl);
-    toast.success("Settings saved successfully");
+    toast({
+      title: "Success",
+      description: "Settings saved successfully",
+      variant: "default",
+    });
   };
 
   const handleChange = (field: keyof CompanyDetails, value: string) => {
