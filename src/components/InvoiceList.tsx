@@ -1,28 +1,15 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wallet, Download, Phone, Calendar, Edit2, Trash2, Search as SearchIcon, Car as CarIcon } from 'lucide-react';
+import { Wallet, Download, Phone, Calendar, Edit2, Trash2, Search as SearchIcon, Car as CarIcon, Share2 } from 'lucide-react';
 import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
 import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { shareInvoice } from '../utils/shareInvoice';
 import { toast } from "sonner";
-import { Calendar as ShadCalendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
 
 interface ServiceItem {
   description: string;
@@ -40,7 +27,6 @@ interface Invoice {
   total: number;
 }
 
-// Utility to parse invoice date as Date object
 const parseInvoiceDate = (date: string) => {
   const d = new Date(date);
   return isNaN(d.getTime()) ? parseISO(date) : d;
@@ -51,19 +37,17 @@ const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
 
-  // Search state
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
-  // Load from localStorage as raw data (no date formatting here)
   useEffect(() => {
     const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     setInvoices(storedInvoices);
     setFilteredInvoices(storedInvoices);
   }, []);
 
-  // Run filtering when searchVehicle or dateRange changes
   useEffect(() => {
     let result = invoices;
 
@@ -161,12 +145,40 @@ const InvoiceList = () => {
       currentY += 5;
       doc.text(`Total: ₹${invoice.total}`, 14, currentY);
 
-      // Save file
       const safeName = invoice.customerName.replace(/\s+/g, '_');
       doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
     });
 
     toast.success("All invoices saved as PDFs");
+  };
+
+  const handleShare = async (invoice: Invoice) => {
+    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
+    const doc = new jsPDF();
+    
+    const pdfBlob = await new Promise<Blob>((resolve) => {
+      doc.html(invoiceHTML, {
+        callback: function(doc) {
+          const pdfBlob = doc.output('blob');
+          resolve(pdfBlob);
+        },
+        x: 10,
+        y: 10
+      });
+    });
+
+    const reader = new FileReader();
+    reader.readAsDataURL(pdfBlob);
+    reader.onloadend = () => {
+      const base64data = reader.result as string;
+      shareInvoice({
+        customerPhone: invoice.customerPhone,
+        customerName: invoice.customerName,
+        invoiceId: invoice.id,
+        pdfContent: base64data,
+        webhookUrl
+      });
+    };
   };
 
   return (
@@ -178,9 +190,7 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Search section: Search by date range and vehicle */}
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
-          {/* Date Range Picker */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -213,7 +223,6 @@ const InvoiceList = () => {
             </PopoverContent>
           </Popover>
 
-          {/* Vehicle Number Input */}
           <div className="flex items-center gap-2">
             <CarIcon className="h-4 w-4 text-gray-500" />
             <Input
@@ -223,7 +232,7 @@ const InvoiceList = () => {
               className="max-w-[180px]"
             />
           </div>
-          {/* Search and Reset Buttons */}
+
           <Button
             variant="secondary"
             onClick={() => {
@@ -244,7 +253,6 @@ const InvoiceList = () => {
           </Button>
         </div>
 
-        {/* Actions */}
         <div className="flex justify-end mb-4 gap-2">
           <Button onClick={saveAllInvoicesAsPDF}>
             Save All Invoices to PDFs
@@ -290,6 +298,13 @@ const InvoiceList = () => {
                         onClick={() => downloadInvoice(invoice)}
                       >
                         <Download className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => handleShare(invoice)}
+                      >
+                        <Share2 className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"

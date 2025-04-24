@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import jsPDF from 'jspdf';
+import { shareInvoice } from '../utils/shareInvoice';
 
 interface ServiceItem {
   description: string;
@@ -84,56 +85,6 @@ const InvoiceForm = () => {
     });
   };
 
-  const shareViaZapier = async (invoice: Invoice, pdfBlob: Blob) => {
-    if (!webhookUrl) {
-      toast({
-        title: "Error",
-        description: "Please configure Zapier webhook URL in settings"
-      });
-      return;
-    }
-
-    setIsSharing(true);
-
-    try {
-      // Convert PDF blob to base64
-      const reader = new FileReader();
-      reader.readAsDataURL(pdfBlob);
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        
-        // Send to Zapier webhook
-        const response = await fetch(webhookUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            customerPhone: invoice.customerPhone,
-            customerName: invoice.customerName,
-            invoiceId: invoice.id,
-            pdfContent: base64data,
-            message: `Hi ${invoice.customerName}, here's your invoice from GM CAR A/C SERVICE & MULTIBRAND.`
-          })
-        });
-
-        toast({
-          title: "Success",
-          description: "Invoice shared successfully"
-        });
-      };
-    } catch (error) {
-      console.error('Error sharing invoice:', error);
-      toast({
-        title: "Error",
-        description: "Failed to share invoice"
-      });
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -154,7 +105,18 @@ const InvoiceForm = () => {
 
     // Generate PDF and share via WhatsApp
     const pdfBlob = await generatePDFBlob(invoice);
-    await shareViaZapier(invoice, pdfBlob);
+    const reader = new FileReader();
+    reader.readAsDataURL(pdfBlob);
+    reader.onloadend = async () => {
+      const base64data = reader.result as string;
+      await shareInvoice({
+        customerPhone,
+        customerName,
+        invoiceId: invoice.id,
+        pdfContent: base64data,
+        webhookUrl
+      });
+    };
 
     // Reset form
     setCustomerName('');
@@ -225,4 +187,5 @@ const InvoiceForm = () => {
       </CardContent>
     </div>;
 };
+
 export default InvoiceForm;
