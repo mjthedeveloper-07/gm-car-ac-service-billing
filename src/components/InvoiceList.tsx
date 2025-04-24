@@ -4,46 +4,26 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Wallet, Download, Phone, Calendar, Edit2, Trash2, Search as SearchIcon, Car as CarIcon, Share2 } from 'lucide-react';
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as ShadCalendar } from "@/components/ui/calendar";
+import { Wallet, Search as SearchIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import PrintableInvoice from './PrintableInvoice';
 import ReactDOMServer from 'react-dom/server';
-import { format, isAfter, isBefore, isEqual, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import { shareInvoice } from '../utils/shareInvoice';
 import { toast } from "sonner";
-
-interface ServiceItem {
-  description: string;
-  amount: number;
-}
-
-interface Invoice {
-  id: string;
-  date: string; // always holds raw (unformatted) date here
-  customerName: string;
-  customerPhone: string;
-  vehicleModel: string;
-  vehicleNumber: string;
-  services: ServiceItem[];
-  total: number;
-}
-
-const parseInvoiceDate = (date: string) => {
-  const d = new Date(date);
-  return isNaN(d.getTime()) ? parseISO(date) : d;
-};
+import { isAfter, isBefore, isEqual } from 'date-fns';
+import type { Invoice } from '@/types/invoice';
+import { parseInvoiceDate } from '@/utils/dateUtils';
+import DateRangeFilter from './invoice/DateRangeFilter';
+import VehicleSearch from './invoice/VehicleSearch';
+import InvoiceCard from './invoice/InvoiceCard';
+import PrintableInvoice from './PrintableInvoice';
 
 const InvoiceList = () => {
   const navigate = useNavigate();
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
-  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
-
+  const [webhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
@@ -124,6 +104,35 @@ const InvoiceList = () => {
     setInvoiceToDelete(null);
   };
 
+  const handleShare = async (invoice: Invoice) => {
+    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
+    const doc = new jsPDF();
+    
+    const pdfBlob = await new Promise<Blob>((resolve) => {
+      doc.html(invoiceHTML, {
+        callback: function(doc) {
+          const pdfBlob = doc.output('blob');
+          resolve(pdfBlob);
+        },
+        x: 10,
+        y: 10
+      });
+    });
+
+    const reader = new FileReader();
+    reader.readAsDataURL(pdfBlob);
+    reader.onloadend = () => {
+      const base64data = reader.result as string;
+      shareInvoice({
+        customerPhone: invoice.customerPhone,
+        customerName: invoice.customerName,
+        invoiceId: invoice.id,
+        pdfContent: base64data,
+        webhookUrl
+      });
+    };
+  };
+
   const saveAllInvoicesAsPDF = () => {
     filteredInvoices.forEach((invoice) => {
       const doc = new jsPDF();
@@ -157,35 +166,6 @@ const InvoiceList = () => {
     toast.success("All invoices saved as PDFs");
   };
 
-  const handleShare = async (invoice: Invoice) => {
-    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
-    const doc = new jsPDF();
-    
-    const pdfBlob = await new Promise<Blob>((resolve) => {
-      doc.html(invoiceHTML, {
-        callback: function(doc) {
-          const pdfBlob = doc.output('blob');
-          resolve(pdfBlob);
-        },
-        x: 10,
-        y: 10
-      });
-    });
-
-    const reader = new FileReader();
-    reader.readAsDataURL(pdfBlob);
-    reader.onloadend = () => {
-      const base64data = reader.result as string;
-      shareInvoice({
-        customerPhone: invoice.customerPhone,
-        customerName: invoice.customerName,
-        invoiceId: invoice.id,
-        pdfContent: base64data,
-        webhookUrl
-      });
-    };
-  };
-
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
@@ -196,48 +176,8 @@ const InvoiceList = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="min-w-[230px] justify-start text-left font-normal"
-              >
-                <Calendar className="mr-2 h-4 w-4" />
-                {dateRange.from && dateRange.to
-                  ? `${format(dateRange.from, "PPP")} - ${format(dateRange.to, "PPP")}`
-                  : "Search by Date Range"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <ShadCalendar
-                mode="range"
-                selected={{
-                  from: dateRange.from,
-                  to: dateRange.to,
-                }}
-                onSelect={(range) =>
-                  setDateRange({
-                    from: range?.from,
-                    to: range?.to,
-                  })
-                }
-                numberOfMonths={2}
-                initialFocus
-                className="p-3 pointer-events-auto"
-              />
-            </PopoverContent>
-          </Popover>
-
-          <div className="flex items-center gap-2">
-            <CarIcon className="h-4 w-4 text-gray-500" />
-            <Input
-              value={searchVehicle}
-              onChange={e => setSearchVehicle(e.target.value)}
-              placeholder="Search by Vehicle Number"
-              className="max-w-[180px]"
-            />
-          </div>
-
+          <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+          <VehicleSearch value={searchVehicle} onChange={setSearchVehicle} />
           <Button
             variant="secondary"
             onClick={() => {
@@ -267,62 +207,14 @@ const InvoiceList = () => {
         <ScrollArea className="h-[600px] w-full">
           <div className="space-y-4">
             {filteredInvoices.map((invoice) => (
-              <Card key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="font-semibold">{invoice.customerName}</h3>
-                    {invoice.customerPhone && (
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Phone className="h-4 w-4" />
-                        {invoice.customerPhone}
-                      </p>
-                    )}
-                    <p className="text-sm text-gray-500">
-                      {invoice.vehicleModel} - {invoice.vehicleNumber}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-semibold">₹{invoice.total}</p>
-                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                        <Calendar className="h-4 w-4" />
-                        {format(parseInvoiceDate(invoice.date), 'PPP')}
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleEdit(invoice.id)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => downloadInvoice(invoice)}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleShare(invoice)}
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setInvoiceToDelete(invoice.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+              <InvoiceCard
+                key={invoice.id}
+                invoice={invoice}
+                onEdit={handleEdit}
+                onDownload={downloadInvoice}
+                onShare={handleShare}
+                onDelete={(id) => setInvoiceToDelete(id)}
+              />
             ))}
             {filteredInvoices.length === 0 && (
               <p className="text-center text-gray-500 py-4">No invoices found</p>
