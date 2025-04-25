@@ -90,6 +90,22 @@ const InvoiceList = () => {
       }, 500);
     }
   };
+  const doc = new jsPDF();
+    
+    doc.html(invoiceHTML, {
+      callback: function(doc) {
+        const pdfBlob = doc.output('blob');
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(pdfBlob);
+        link.download = `GM_Auto_Invoice_${invoice.customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      },
+      x: 10,
+      y: 10
+    });
 
   const handleEdit = (id: string) => {
     navigate(`/edit/${id}`);
