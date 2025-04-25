@@ -23,7 +23,6 @@ const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
-  const [webhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
@@ -127,8 +126,7 @@ const InvoiceList = () => {
         customerPhone: invoice.customerPhone,
         customerName: invoice.customerName,
         invoiceId: invoice.id,
-        pdfContent: base64data,
-        webhookUrl
+        pdfContent: base64data
       });
     };
   };

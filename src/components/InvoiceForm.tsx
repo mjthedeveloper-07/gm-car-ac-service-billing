@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,7 +18,6 @@ const InvoiceForm = () => {
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
-  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
   const [isSharing, setIsSharing] = useState(false);
 
   const addService = () => {
@@ -84,8 +84,7 @@ const InvoiceForm = () => {
           customerPhone,
           customerName,
           invoiceId: invoice.id,
-          pdfContent: base64data,
-          webhookUrl
+          pdfContent: base64data
         });
       }
     };
