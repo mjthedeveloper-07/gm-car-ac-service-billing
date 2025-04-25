@@ -118,6 +118,17 @@ const InvoiceForm = () => {
       });
     };
 
+     // Create a download link with customer name
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(pdfBlob);
+      link.download = `GM_Auto_Invoice_${customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+    };
+
+
     // Reset form
     setCustomerName('');
     setCustomerPhone('');
