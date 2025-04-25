@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 
 interface ServiceItem {
@@ -118,23 +117,11 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
         </tbody>
       </table>
 
-      <div className="mt-8 pt-8 border-t text-center">
-        <p className="text-gray-600">Thank you for choosing our service!</p>
-        
-        {/* New No Warranty Disclaimer */}
-        <div className="mt-4 border-t pt-4 text-xs text-gray-500">
-          <p className="font-bold mb-2">DISCLAIMER: NO WARRANTY AND NO GUARANTEE</p>
-          <p>
-            This service and any parts or repairs are provided "AS IS" without any warranty, 
-            express or implied. GM CAR A/C SERVICE & MULTIBRAND does not guarantee the 
-            performance, durability, or fitness of any repair or part for any specific purpose. 
-            The customer assumes all risk associated with the service provided.
-          </p>
-        </div>
+      <div className="mt-8 pt-8 border-t">
+        <p className="text-gray-600 text-center">Thank you for choosing our service!</p>
       </div>
     </div>
   );
 };
 
 export default PrintableInvoice;
-
