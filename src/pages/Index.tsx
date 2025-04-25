@@ -13,6 +13,13 @@ const Index = () => {
         <AppSidebar />
         <div className="flex-1 p-8">
           <div className="text-center mb-6">
+            <div className="flex justify-center items-center mb-4">
+              <img 
+                src="/lovable-uploads/63822fdf-87c9-4ff9-9b0c-12e0ca960fb2.png" 
+                alt="GM Car AC Service Logo" 
+                className="h-24 w-24 object-contain"
+              />
+            </div>
             <h1 className="text-4xl card-header-gradient font-bold tracking-tight animate-fade-in">
               GM CAR A/C SERVICE & MULTIBRAND
             </h1>
