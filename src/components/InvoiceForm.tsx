@@ -4,19 +4,35 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 import jsPDF from 'jspdf';
 import { shareInvoice } from '../utils/shareInvoice';
-import ReactDOMServer from 'react-dom/server';
-import PrintableInvoice from './PrintableInvoice';
-import type { Invoice, ServiceItem } from '@/types/invoice';
+
+interface ServiceItem {
+  description: string;
+  amount: number;
+}
+interface Invoice {
+  id: string;
+  date: string;
+  customerName: string;
+  customerPhone: string;
+  vehicleModel: string;
+  vehicleNumber: string;
+  services: ServiceItem[];
+  total: number;
+}
 
 const InvoiceForm = () => {
+  const {
+    toast
+  } = useToast();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
+  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
   const [isSharing, setIsSharing] = useState(false);
 
   const addService = () => {
@@ -25,7 +41,6 @@ const InvoiceForm = () => {
       amount: 0
     }]);
   };
-  
   const updateService = (index: number, field: keyof ServiceItem, value: string) => {
     const updatedServices = [...services];
     if (field === 'amount') {
@@ -35,9 +50,39 @@ const InvoiceForm = () => {
     }
     setServices(updatedServices);
   };
-  
   const calculateTotal = () => {
     return services.reduce((sum, service) => sum + service.amount, 0);
+  };
+
+  const generatePDFBlob = (invoice: Invoice): Promise<Blob> => {
+    return new Promise((resolve) => {
+      const doc = new jsPDF();
+      
+      doc.setFontSize(16);
+      doc.text(`Invoice #${invoice.id}`, 14, 20);
+      
+      doc.setFontSize(12);
+      doc.text(`Date: ${new Date().toLocaleDateString()}`, 14, 30);
+      doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
+      doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
+      doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
+      doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
+      
+      let currentY = 85;
+      doc.text("Services:", 14, currentY);
+      currentY += 8;
+      
+      invoice.services.forEach((service, index) => {
+        doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+        currentY += 8;
+      });
+      
+      currentY += 5;
+      doc.text(`Total: ₹${invoice.total}`, 14, currentY);
+      
+      const pdfBlob = doc.output('blob');
+      resolve(pdfBlob);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,43 +103,19 @@ const InvoiceForm = () => {
     const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
 
-    // Generate PDF for the invoice
-    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
-    const doc = new jsPDF();
-    
-    const pdfBlob = await new Promise<Blob>((resolve) => {
-      doc.html(invoiceHTML, {
-        callback: function(doc) {
-          const pdfBlob = doc.output('blob');
-          resolve(pdfBlob);
-        },
-        x: 10,
-        y: 10
-      });
-    });
-    
-    // Convert the PDF blob to base64
+    // Generate PDF and share via WhatsApp
+    const pdfBlob = await generatePDFBlob(invoice);
     const reader = new FileReader();
     reader.readAsDataURL(pdfBlob);
     reader.onloadend = async () => {
       const base64data = reader.result as string;
-      if (customerPhone) {
-        await shareInvoice({
-          customerPhone,
-          customerName,
-          invoiceId: invoice.id,
-          pdfContent: base64data
-        });
-      }
-
-      // Create a download link with customer name
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(pdfBlob);
-      link.download = `GM_Auto_Invoice_${customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
+      await shareInvoice({
+        customerPhone,
+        customerName,
+        invoiceId: invoice.id,
+        pdfContent: base64data,
+        webhookUrl
+      });
     };
 
     // Reset form
@@ -103,8 +124,6 @@ const InvoiceForm = () => {
     setVehicleModel('');
     setVehicleNumber('');
     setServices([{ description: '', amount: 0 }]);
-    
-    toast.success("Invoice created successfully");
   };
 
   return <div className="card-gradient-sass w-full max-w-3xl mx-auto my-5">

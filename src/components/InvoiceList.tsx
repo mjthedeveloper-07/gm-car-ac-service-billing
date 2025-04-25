@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,7 +10,7 @@ import ReactDOMServer from 'react-dom/server';
 import jsPDF from 'jspdf';
 import { shareInvoice } from '../utils/shareInvoice';
 import { toast } from "sonner";
-import { isAfter, isBefore, isEqual, format } from 'date-fns';
+import { isAfter, isBefore, isEqual } from 'date-fns';
 import type { Invoice } from '@/types/invoice';
 import { parseInvoiceDate } from '@/utils/dateUtils';
 import DateRangeFilter from './invoice/DateRangeFilter';
@@ -22,6 +23,7 @@ const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
+  const [webhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
@@ -61,22 +63,32 @@ const InvoiceList = () => {
 
   const downloadInvoice = (invoice: Invoice) => {
     const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
-    const doc = new jsPDF();
-    
-    doc.html(invoiceHTML, {
-      callback: function(doc) {
-        const pdfBlob = doc.output('blob');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(pdfBlob);
-        link.download = `GM_Auto_Invoice_${invoice.customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      },
-      x: 10,
-      y: 10
-    });
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>Invoice - ${invoice.id}</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+            <style>
+              @media print {
+                body {
+                  print-color-adjust: exact;
+                  -webkit-print-color-adjust: exact;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            ${invoiceHTML}
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+      setTimeout(() => {
+        printWindow.print();
+      }, 500);
+    }
   };
 
   const handleEdit = (id: string) => {
@@ -115,7 +127,8 @@ const InvoiceList = () => {
         customerPhone: invoice.customerPhone,
         customerName: invoice.customerName,
         invoiceId: invoice.id,
-        pdfContent: base64data
+        pdfContent: base64data,
+        webhookUrl
       });
     };
   };

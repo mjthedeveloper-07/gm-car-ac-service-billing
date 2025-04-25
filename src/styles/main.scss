@@ -1,6 +1,8 @@
 
+/* Gradients and custom animation utilities with Tailwind+Sass */
+
 /* === Color Variables === */
-$primary-gradient: linear-gradient(135deg, #93278f 5.9%, #ee7171 100%);
+$primary-gradient: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
 $secondary-gradient: linear-gradient(102.3deg, #93278f 5.9%, #eaace8 64%, #f6dbf5 89%);
 $button-gradient: linear-gradient(90deg, #9b87f5 0%, #7e69ab 100%);
 $button-gradient-hover: linear-gradient(90deg, #7e69ab 0%, #9b87f5 100%);
@@ -15,11 +17,10 @@ $custom-radius: 1.25rem;
   box-shadow: 0 4px 16px rgba(100, 98, 96, 0.09);
   border: 1.5px solid #ede7da;
   padding: 1.5rem;
-  transition: box-shadow 0.2s, transform 0.2s;
+  transition: box-shadow 0.2s, background 0.7s;
   animation: fade-in-card 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 
-  @apply transition-all duration-200 hover:shadow-2xl hover:scale-[1.02] cursor-pointer;
-  
+  @apply transition-shadow duration-200 hover:shadow-2xl cursor-pointer;
   &:hover {
     background: $card-gradient-hover;
     box-shadow: 0 6px 24px rgba(100, 98, 96, 0.13);
@@ -34,10 +35,10 @@ $custom-radius: 1.25rem;
   border: none;
   border-radius: 8px;
   font-weight: 600;
-  padding: 0.75rem 2rem;
+  padding: 0.5rem 1.5rem;
   box-shadow: 0 2px 16px 0px #9b87f522;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
 
   @apply shadow-lg relative overflow-hidden hover:scale-105;
 
@@ -45,8 +46,8 @@ $custom-radius: 1.25rem;
     background: $button-gradient-hover;
     box-shadow: 0 4px 28px 0px #7e69ab55;
     animation: pulse 0.8s;
-    outline: none;
-    
+    outline:none;
+    /* subtle shine animation */
     &::after {
       content: "";
       position: absolute;
@@ -54,7 +55,7 @@ $custom-radius: 1.25rem;
       top: 0;
       width: 150%;
       height: 100%;
-      background: linear-gradient(120deg, transparent 0%, #ffffff22 80%, transparent 100%);
+      background: linear-gradient(120deg, transparent 0%, #fff8 80%, transparent 100%);
       transform: skewX(-20deg);
       animation: shine 0.8s;
     }
@@ -67,18 +68,15 @@ $custom-radius: 1.25rem;
   85% { opacity: 1; }
   100% { opacity: 1; transform: translateY(0) scale(1);}
 }
-
 @keyframes scale-in {
   0% { transform: scale(0.98);}
   100% { transform: scale(1);}
 }
-
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 #9b87f544;}
   75% { box-shadow: 0 0 0 10px #7e69ab22;}
   100% { box-shadow: 0 0 0 0 #9b87f511;}
 }
-
 @keyframes shine {
   0% { left: -120%; }
   60% { left: 120%;}
@@ -92,16 +90,3 @@ $custom-radius: 1.25rem;
   -webkit-text-fill-color: transparent;
   @apply font-bold;
 }
-
-/* === Page Background === */
-.page-gradient {
-  background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
-}
-
-/* === Card Header Gradient === */
-.card-header-gradient {
-  background: linear-gradient(102.3deg, #93278f 5.9%, #eaace8 64%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-

@@ -6,41 +6,40 @@ interface ShareInvoiceProps {
   customerName: string;
   invoiceId: string;
   pdfContent: string;
+  webhookUrl?: string;
 }
 
 export const shareInvoice = async ({
   customerPhone,
   customerName,
   invoiceId,
-  pdfContent
+  pdfContent,
+  webhookUrl,
 }: ShareInvoiceProps) => {
-  // Add country code if not present
-  const formattedPhone = customerPhone.startsWith('+') 
-    ? customerPhone 
-    : `+91${customerPhone}`; // Assuming India as default country code
+  if (!webhookUrl) {
+    toast.error("Please configure Zapier webhook URL in settings");
+    return;
+  }
 
-  // Using WhatsApp Business API
-  const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone.replace('+', '')}&text=Hi ${customerName}, here's your invoice from GM CAR A/C SERVICE & MULTIBRAND.`;
-  
   try {
-    // Create a temporary link to download the PDF
-    const blob = await fetch(pdfContent).then(r => r.blob());
-    const blobUrl = URL.createObjectURL(blob);
-    
-    // Open WhatsApp in a new window
-    window.open(whatsappUrl, '_blank');
-    
-    // Create a temporary link and trigger download
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = `invoice_${invoiceId}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success("Invoice ready to share via WhatsApp");
+    await fetch(webhookUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        customerPhone,
+        customerName,
+        invoiceId,
+        pdfContent,
+        message: `Hi ${customerName}, here's your invoice from GM CAR A/C SERVICE & MULTIBRAND.`
+      })
+    });
+
+    toast.success("Invoice shared successfully");
   } catch (error) {
-    console.error('Error preparing invoice:', error);
-    toast.error("Failed to prepare invoice");
+    console.error('Error sharing invoice:', error);
+    toast.error("Failed to share invoice");
   }
 };
