@@ -1,33 +1,63 @@
-
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wallet } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Wallet, Search as SearchIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import ReactDOMServer from 'react-dom/server';
 import jsPDF from 'jspdf';
 import { shareInvoice } from '../utils/shareInvoice';
 import { toast } from "sonner";
-import { format } from 'date-fns';
+import { isAfter, isBefore, isEqual, format } from 'date-fns';
 import type { Invoice } from '@/types/invoice';
-import { useInvoices } from '@/hooks/useInvoices';
-import InvoiceActions from './invoice/InvoiceActions';
-import InvoiceListContainer from './invoice/InvoiceListContainer';
+import { parseInvoiceDate } from '@/utils/dateUtils';
+import DateRangeFilter from './invoice/DateRangeFilter';
+import VehicleSearch from './invoice/VehicleSearch';
+import InvoiceCard from './invoice/InvoiceCard';
 import PrintableInvoice from './PrintableInvoice';
 
 const InvoiceList = () => {
   const navigate = useNavigate();
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
-  
-  const {
-    filteredInvoices,
-    searchVehicle,
-    setSearchVehicle,
-    dateRange,
-    setDateRange,
-    deleteInvoice,
-    resetFilters
-  } = useInvoices();
+  const [searchVehicle, setSearchVehicle] = useState("");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
+
+  useEffect(() => {
+    const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+    setInvoices(storedInvoices);
+    setFilteredInvoices(storedInvoices);
+  }, []);
+
+  useEffect(() => {
+    let result = invoices;
+
+    if (searchVehicle.trim() !== "") {
+      result = result.filter(invoice =>
+        invoice.vehicleNumber.toLowerCase().includes(searchVehicle.trim().toLowerCase())
+      );
+    }
+
+    if (dateRange.from && dateRange.to) {
+      result = result.filter(invoice => {
+        const dateObj = parseInvoiceDate(invoice.date);
+        return (
+          (isAfter(dateObj, dateRange.from) || isEqual(dateObj, dateRange.from)) &&
+          (isBefore(dateObj, dateRange.to) || isEqual(dateObj, dateRange.to))
+        );
+      });
+    }
+
+    setFilteredInvoices(result);
+  }, [invoices, searchVehicle, dateRange]);
+
+  const resetFilters = () => {
+    setSearchVehicle("");
+    setDateRange({ from: undefined, to: undefined });
+    setFilteredInvoices(invoices);
+  };
 
   const downloadInvoice = (invoice: Invoice) => {
     const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
@@ -54,7 +84,10 @@ const InvoiceList = () => {
   };
 
   const handleDelete = (id: string) => {
-    deleteInvoice(id);
+    const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
+    localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+    setInvoices(updatedInvoices);
+    setFilteredInvoices(updatedInvoices);
     toast.success("Invoice deleted successfully");
     setInvoiceToDelete(null);
   };
@@ -95,7 +128,7 @@ const InvoiceList = () => {
       doc.text(`Invoice #${invoice.id}`, 14, 20);
 
       doc.setFontSize(12);
-      doc.text(`Date: ${format(new Date(invoice.date), 'PPP')}`, 14, 30);
+      doc.text(`Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}`, 14, 30);
       doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
       doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
       doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
@@ -129,24 +162,53 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <InvoiceActions
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-          searchValue={searchVehicle}
-          onSearchChange={setSearchVehicle}
-          onReset={resetFilters}
-          onSaveAll={saveAllInvoicesAsPDF}
-        />
+        <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
+          <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+          <VehicleSearch value={searchVehicle} onChange={setSearchVehicle} />
+          <Button
+            variant="secondary"
+            onClick={() => {
+              // No need to do anything; the effect will auto-filter on state change
+            }}
+            className="flex items-center gap-1"
+            type="button"
+          >
+            <SearchIcon className="h-4 w-4" /> Search
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={resetFilters}
+            className="flex items-center gap-1"
+            type="button"
+          >
+            Reset
+          </Button>
+        </div>
 
-        <InvoiceListContainer
-          invoices={filteredInvoices}
-          onEdit={handleEdit}
-          onDownload={downloadInvoice}
-          onShare={handleShare}
-          onDelete={(id) => setInvoiceToDelete(id)}
-        />
+        <div className="flex justify-end mb-4 gap-2">
+          <Button onClick={saveAllInvoicesAsPDF}>
+            Save All Invoices to PDFs
+          </Button>
+        </div>
+
+        <ScrollArea className="h-[600px] w-full">
+          <div className="space-y-4">
+            {filteredInvoices.map((invoice) => (
+              <InvoiceCard
+                key={invoice.id}
+                invoice={invoice}
+                onEdit={handleEdit}
+                onDownload={downloadInvoice}
+                onShare={handleShare}
+                onDelete={(id) => setInvoiceToDelete(id)}
+              />
+            ))}
+            {filteredInvoices.length === 0 && (
+              <p className="text-center text-gray-500 py-4">No invoices found</p>
+            )}
+          </div>
+        </ScrollArea>
       </CardContent>
-
       <AlertDialog open={!!invoiceToDelete} onOpenChange={() => setInvoiceToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
