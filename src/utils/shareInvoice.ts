@@ -8,6 +8,27 @@ interface ShareInvoiceProps {
   pdfContent: string;
 }
 
+const saveInvoiceToPDF = async (pdfBlob: Blob, fileName: string) => {
+  try {
+    // Create a File object from the Blob
+    const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+    
+    // Save to downloads folder
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(file);
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+    
+    toast.success("Invoice saved successfully");
+  } catch (error) {
+    console.error('Error saving invoice:', error);
+    toast.error("Failed to save invoice");
+  }
+};
+
 export const shareInvoice = async ({
   customerPhone,
   customerName,
@@ -19,28 +40,26 @@ export const shareInvoice = async ({
     ? customerPhone 
     : `+91${customerPhone}`; // Assuming India as default country code
 
-  // Using WhatsApp Business API
-  const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone.replace('+', '')}&text=Hi ${customerName}, here's your invoice from GM CAR A/C SERVICE & MULTIBRAND.`;
-  
+  // Format the filename with customer details
+  const fileName = `gm_ac_service_${customerName.replace(/\s+/g, '_')}_${invoiceId}.pdf`;
+
   try {
-    // Create a temporary link to download the PDF
+    // Create PDF blob
     const blob = await fetch(pdfContent).then(r => r.blob());
-    const blobUrl = URL.createObjectURL(blob);
+    
+    // Save the PDF
+    await saveInvoiceToPDF(blob, fileName);
+    
+    // Create WhatsApp sharing link
+    const whatsappText = encodeURIComponent(`Hi ${customerName}, here's your invoice from GM CAR A/C SERVICE & MULTIBRAND.`);
+    const whatsappUrl = `https://api.whatsapp.com/send?phone=${formattedPhone.replace('+', '')}&text=${whatsappText}`;
     
     // Open WhatsApp in a new window
     window.open(whatsappUrl, '_blank');
     
-    // Create a temporary link and trigger download
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    link.download = `invoice_${invoiceId}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
     toast.success("Invoice ready to share via WhatsApp");
   } catch (error) {
     console.error('Error preparing invoice:', error);
-    toast.error("Failed to prepare invoice");
+    toast.error("Failed to prepare invoice for sharing");
   }
 };

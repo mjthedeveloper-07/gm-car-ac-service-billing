@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { format } from 'date-fns';
 import { Phone, Calendar, Edit2, Download, Share2, Trash2 } from 'lucide-react';
@@ -6,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Invoice } from '@/types/invoice';
 import { parseInvoiceDate } from '@/utils/dateUtils';
+import { toast } from "sonner";
 
 interface InvoiceCardProps {
   invoice: Invoice;
@@ -22,6 +22,14 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   onShare,
   onDelete,
 }) => {
+  const handleShare = () => {
+    if (!invoice.customerPhone) {
+      toast.error("Customer phone number is required for sharing");
+      return;
+    }
+    onShare(invoice);
+  };
+
   return (
     <Card key={invoice.id} className="p-4 hover:bg-gray-50 transition-colors">
       <div className="flex justify-between items-start">
@@ -63,7 +71,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             <Button
               variant="outline"
               size="icon"
-              onClick={() => onShare(invoice)}
+              onClick={handleShare}
+              className={!invoice.customerPhone ? 'opacity-50' : ''}
+              title={!invoice.customerPhone ? 'Customer phone required' : 'Share invoice'}
             >
               <Share2 className="h-4 w-4" />
             </Button>
