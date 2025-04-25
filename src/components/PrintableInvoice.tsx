@@ -119,6 +119,7 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
 
       <div className="mt-8 pt-8 border-t">
         <p className="text-gray-600 text-center">Thank you for choosing our service!</p>
+         <p className="text-gray-600 text-center">"No Warranty and No Guarantee"</p>
       </div>
     </div>
   );
