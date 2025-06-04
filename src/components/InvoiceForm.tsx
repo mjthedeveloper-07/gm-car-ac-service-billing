@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,9 +25,7 @@ interface Invoice {
 }
 
 const InvoiceForm = () => {
-  const {
-    toast
-  } = useToast();
+  const { toast } = useToast();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
@@ -41,6 +40,7 @@ const InvoiceForm = () => {
       amount: 0
     }]);
   };
+  
   const updateService = (index: number, field: keyof ServiceItem, value: string) => {
     const updatedServices = [...services];
     if (field === 'amount') {
@@ -50,6 +50,7 @@ const InvoiceForm = () => {
     }
     setServices(updatedServices);
   };
+  
   const calculateTotal = () => {
     return services.reduce((sum, service) => sum + service.amount, 0);
   };
@@ -118,16 +119,14 @@ const InvoiceForm = () => {
       });
     };
 
-     // Create a download link with customer name
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(pdfBlob);
-      link.download = `GM_Auto_Invoice_${customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    };
-
+    // Create a download link with customer name
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(pdfBlob);
+    link.download = `GM_Auto_Invoice_${customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 
     // Reset form
     setCustomerName('');
@@ -137,7 +136,8 @@ const InvoiceForm = () => {
     setServices([{ description: '', amount: 0 }]);
   };
 
-  return <div className="card-gradient-sass w-full max-w-3xl mx-auto my-5">
+  return (
+    <div className="card-gradient-sass w-full max-w-3xl mx-auto my-5">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Receipt className="h-6 w-6" />
@@ -176,7 +176,8 @@ const InvoiceForm = () => {
               </Button>
             </div>
             
-            {services.map((service, index) => <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {services.map((service, index) => (
+              <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor={`service-${index}`}>Service Description</Label>
                   <Input id={`service-${index}`} value={service.description} onChange={e => updateService(index, 'description', e.target.value)} required className="bg-white" />
@@ -185,7 +186,8 @@ const InvoiceForm = () => {
                   <Label htmlFor={`amount-${index}`}>Amount</Label>
                   <Input id={`amount-${index}`} type="number" value={service.amount} onChange={e => updateService(index, 'amount', e.target.value)} required className="bg-white" />
                 </div>
-              </div>)}
+              </div>
+            ))}
           </div>
 
           <div className="flex justify-between items-center pt-4 border-t">
@@ -196,7 +198,8 @@ const InvoiceForm = () => {
           </div>
         </form>
       </CardContent>
-    </div>;
+    </div>
+  );
 };
 
 export default InvoiceForm;
