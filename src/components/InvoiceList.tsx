@@ -112,32 +112,39 @@ const InvoiceList = () => {
   };
 
   const handleShare = async (invoice: Invoice) => {
+    toast.loading("Preparing PDF for sharing...", { id: 'shareInvoice' });
     const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
     const doc = new jsPDF();
-    
-    const pdfBlob = await new Promise<Blob>((resolve) => {
-      doc.html(invoiceHTML, {
-        callback: function(doc) {
-          const pdfBlob = doc.output('blob');
-          resolve(pdfBlob);
-        },
-        x: 10,
-        y: 10
-      });
-    });
 
-    const reader = new FileReader();
-    reader.readAsDataURL(pdfBlob);
-    reader.onloadend = () => {
-      const base64data = reader.result as string;
-      shareInvoice({
-        customerPhone: invoice.customerPhone,
-        customerName: invoice.customerName,
-        invoiceId: invoice.id,
-        pdfContent: base64data,
-        webhookUrl
+    try {
+      const pdfBlob = await new Promise<Blob>((resolve) => {
+        doc.html(invoiceHTML, {
+          callback: function(doc) {
+            const pdfBlob = doc.output('blob');
+            resolve(pdfBlob);
+          },
+          x: 10,
+          y: 10
+        });
       });
-    };
+
+      const reader = new FileReader();
+      reader.readAsDataURL(pdfBlob);
+
+      reader.onloadend = () => {
+        const base64data = reader.result as string;
+        shareInvoice({
+          customerPhone: invoice.customerPhone,
+          customerName: invoice.customerName,
+          invoiceId: invoice.id,
+          pdfContent: base64data,
+          webhookUrl
+        });
+        toast.success("Invoice shared successfully", { id: 'shareInvoice' });
+      };
+    } catch (err) {
+      toast.error("Failed to share PDF", { id: 'shareInvoice' });
+    }
   };
 
   const saveAllInvoicesAsPDF = () => {
