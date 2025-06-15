@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -29,8 +28,6 @@ const CompanySettings = () => {
     website: 'www.gmcaracservice.com'
   });
 
-  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
-
   useEffect(() => {
     const savedDetails = localStorage.getItem('companyDetails');
     if (savedDetails) {
@@ -41,7 +38,6 @@ const CompanySettings = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('companyDetails', JSON.stringify(companyDetails));
-    localStorage.setItem('zapierWebhookUrl', webhookUrl);
     toast({
       title: "Success",
       description: "Settings saved successfully",
@@ -125,19 +121,6 @@ const CompanySettings = () => {
                 required
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="webhookUrl">Zapier Webhook URL (for WhatsApp sharing)</Label>
-            <Input
-              id="webhookUrl"
-              value={webhookUrl}
-              onChange={(e) => setWebhookUrl(e.target.value)}
-              placeholder="Enter your Zapier webhook URL"
-              className="w-full"
-            />
-            <p className="text-sm text-gray-500">
-              This webhook will be used to automatically share invoice PDFs via WhatsApp.
-            </p>
           </div>
           <Button type="submit" className="w-full">
             Save Settings

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -31,9 +30,7 @@ const InvoiceForm = () => {
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
-  const [webhookUrl, setWebhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
-  const [isSharing, setIsSharing] = useState(false);
-
+  
   const addService = () => {
     setServices([...services, {
       description: '',
@@ -104,20 +101,8 @@ const InvoiceForm = () => {
     const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
 
-    // Generate PDF and share via WhatsApp
+    // Generate PDF and download (removed share)
     const pdfBlob = await generatePDFBlob(invoice);
-    const reader = new FileReader();
-    reader.readAsDataURL(pdfBlob);
-    reader.onloadend = async () => {
-      const base64data = reader.result as string;
-      await shareInvoice({
-        customerPhone,
-        customerName,
-        invoiceId: invoice.id,
-        pdfContent: base64data,
-        webhookUrl
-      });
-    };
 
     // Create a download link with customer name
     const link = document.createElement('a');

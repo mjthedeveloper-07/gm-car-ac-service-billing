@@ -25,7 +25,6 @@ const InvoiceList = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [filteredInvoices, setFilteredInvoices] = useState<Invoice[]>([]);
   const [invoiceToDelete, setInvoiceToDelete] = useState<string | null>(null);
-  const [webhookUrl] = useState(localStorage.getItem('zapierWebhookUrl') || '');
   const [searchVehicle, setSearchVehicle] = useState("");
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
@@ -109,42 +108,6 @@ const InvoiceList = () => {
     setFilteredInvoices(updatedInvoices);
     toast.success("Invoice deleted successfully");
     setInvoiceToDelete(null);
-  };
-
-  const handleShare = async (invoice: Invoice) => {
-    toast.loading("Preparing PDF for sharing...", { id: 'shareInvoice' });
-    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
-    const doc = new jsPDF();
-
-    try {
-      const pdfBlob = await new Promise<Blob>((resolve) => {
-        doc.html(invoiceHTML, {
-          callback: function(doc) {
-            const pdfBlob = doc.output('blob');
-            resolve(pdfBlob);
-          },
-          x: 10,
-          y: 10
-        });
-      });
-
-      const reader = new FileReader();
-      reader.readAsDataURL(pdfBlob);
-
-      reader.onloadend = () => {
-        const base64data = reader.result as string;
-        shareInvoice({
-          customerPhone: invoice.customerPhone,
-          customerName: invoice.customerName,
-          invoiceId: invoice.id,
-          pdfContent: base64data,
-          webhookUrl
-        });
-        toast.success("Invoice shared successfully", { id: 'shareInvoice' });
-      };
-    } catch (err) {
-      toast.error("Failed to share PDF", { id: 'shareInvoice' });
-    }
   };
 
   const saveAllInvoicesAsPDF = () => {
@@ -260,7 +223,6 @@ const InvoiceList = () => {
                 invoice={invoice}
                 onEdit={handleEdit}
                 onDownload={downloadInvoice}
-                onShare={handleShare}
                 onPrint={printInvoice}
                 onDelete={(id) => setInvoiceToDelete(id)}
               />
