@@ -6,6 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as ShadCalendar } from "@/components/ui/calendar";
 
+interface DateRange {
+  from?: Date;
+  to?: Date;
+}
+
 interface DateRangeFilterProps {
   dateRange: { from: Date | undefined; to: Date | undefined };
   onDateRangeChange: (range: { from: Date | undefined; to: Date | undefined }) => void;
@@ -32,7 +37,13 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ dateRange, onDateRang
             from: dateRange.from,
             to: dateRange.to,
           }}
-          onSelect={(range) => onDateRangeChange(range || { from: undefined, to: undefined })}
+          onSelect={(range: DateRange | undefined) => {
+            // Always pass both `from` and `to` as keys with undefined fallback for both (to satisfy type)
+            onDateRangeChange({
+              from: range?.from ?? undefined,
+              to: range?.to ?? undefined,
+            });
+          }}
           numberOfMonths={2}
           initialFocus
           className="p-3 pointer-events-auto"
@@ -43,3 +54,4 @@ const DateRangeFilter: React.FC<DateRangeFilterProps> = ({ dateRange, onDateRang
 };
 
 export default DateRangeFilter;
+
