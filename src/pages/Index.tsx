@@ -1,4 +1,3 @@
-
 import { SidebarProvider } from "@/components/ui/sidebar";
 import InvoiceForm from "@/components/InvoiceForm";
 import InvoiceList from "@/components/InvoiceList";
@@ -15,7 +14,7 @@ const Index = () => {
           {/* New company name header */}
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold text-gray-800 tracking-tight animate-fade-in">
-              GM CAR A/C SERVICE & MULTIBRAND
+              GM CAR AC SERVICE BILLING
             </h1>
             <div className="h-1 bg-gradient-to-r from-blue-500 to-purple-500 w-48 mx-auto mt-2 rounded-full"></div>
           </div>
@@ -43,4 +42,3 @@ const Index = () => {
 };
 
 export default Index;
-
