@@ -173,6 +173,37 @@ const InvoiceList = () => {
     toast.success("All invoices saved as PDFs");
   };
 
+  // Add handler to download a single invoice as PDF
+  const downloadInvoice = (invoice: Invoice) => {
+    // Generate simple PDF from invoice object.
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text(`Invoice #${invoice.id}`, 14, 20);
+
+    doc.setFontSize(12);
+    doc.text(`Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}`, 14, 30);
+    doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
+    doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
+    doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
+    doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
+
+    let currentY = 85;
+    doc.text("Services:", 14, currentY);
+    currentY += 8;
+
+    invoice.services.forEach((service, index) => {
+      doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+      currentY += 8;
+    });
+
+    currentY += 5;
+    doc.text(`Total: ₹${invoice.total}`, 14, currentY);
+
+    const safeName = invoice.customerName.replace(/\s+/g, '_');
+    doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
+  };
+
   return (
     <Card className="w-full max-w-3xl mx-auto">
       <CardHeader>
@@ -221,7 +252,7 @@ const InvoiceList = () => {
                 key={invoice.id}
                 invoice={invoice}
                 onEdit={handleEdit}
-                onDownload={() => {}}
+                onDownload={downloadInvoice}
                 onShare={handleShare}
                 onPrint={printInvoice}
                 onDelete={(id) => setInvoiceToDelete(id)}
