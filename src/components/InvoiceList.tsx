@@ -105,7 +105,7 @@ const InvoiceList = () => {
     localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
     setInvoices(updatedInvoices);
     setFilteredInvoices(updatedInvoices);
-    toast.success("Invoice deleted successfully");
+    toast({ title: "Invoice deleted successfully" });
     setInvoiceToDelete(null);
   };
 
@@ -139,7 +139,7 @@ const InvoiceList = () => {
       doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
     });
 
-    toast.success("All invoices saved as PDFs");
+    toast({ title: "All invoices saved as PDFs" });
   };
 
   // Add handler to download a single invoice as PDF
