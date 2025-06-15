@@ -221,9 +221,9 @@ const InvoiceList = () => {
                 key={invoice.id}
                 invoice={invoice}
                 onEdit={handleEdit}
-                onDownload={downloadInvoice}
+                onDownload={() => {}}
                 onShare={handleShare}
-                onPrint={printInvoice} {/* Pass the print handler */}
+                onPrint={printInvoice}
                 onDelete={(id) => setInvoiceToDelete(id)}
               />
             ))}
