@@ -182,40 +182,49 @@ const InvoiceList = () => {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
-          <DateRangeFilter
-            dateRange={dateRange}
-            onDateRangeChange={setDateRange}
-          />
-          <VehicleSearch value={searchVehicle} onChange={setSearchVehicle} />
-          <Button
-            variant="secondary"
-            onClick={() => {
-              // No need to do anything; the effect will auto-filter on state change
-            }}
-            className="flex items-center gap-1"
-            type="button"
-          >
-            <SearchIcon className="h-4 w-4" /> Search
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={resetFilters}
-            className="flex items-center gap-1"
-            type="button"
-          >
-            Reset
-          </Button>
+        {/* Responsive filter/action section */}
+        <div className="flex flex-col gap-3 md:flex-row md:gap-2 mb-4 items-stretch md:items-end">
+          <div className="flex flex-col gap-2 w-full md:w-auto">
+            <DateRangeFilter
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+          </div>
+          <div className="flex flex-col gap-2 w-full md:w-auto">
+            <VehicleSearch value={searchVehicle} onChange={setSearchVehicle} />
+          </div>
+          <div className="flex flex-row gap-2 w-full md:w-auto">
+            <Button
+              variant="secondary"
+              onClick={() => {
+                // The effect will auto-filter on state change
+              }}
+              className="flex items-center gap-1 w-full md:w-auto"
+              type="button"
+            >
+              <SearchIcon className="h-4 w-4" /> Search
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={resetFilters}
+              className="flex items-center gap-1 w-full md:w-auto"
+              type="button"
+            >
+              Reset
+            </Button>
+          </div>
         </div>
 
+        {/* Save All Button - responsive alignment */}
         <div className="flex justify-end mb-4 gap-2">
-          <Button onClick={saveAllInvoicesAsPDF}>
+          <Button className="w-full md:w-auto" onClick={saveAllInvoicesAsPDF}>
             Save All Invoices to PDFs
           </Button>
         </div>
 
-        <ScrollArea className="h-[600px] w-full">
-          <div className="space-y-4">
+        {/* Responsive scroll area & invoice cards */}
+        <ScrollArea className="h-[60vh] max-h-[600px] w-full">
+          <div className="grid gap-4 grid-cols-1">
             {filteredInvoices.map((invoice) => (
               <InvoiceCard
                 key={invoice.id}
