@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +16,9 @@ import DateRangeFilter from './invoice/DateRangeFilter';
 import VehicleSearch from './invoice/VehicleSearch';
 import InvoiceCard from './invoice/InvoiceCard';
 import PrintableInvoice from './PrintableInvoice';
+import { format } from "date-fns";
+
+const printableInvoiceCache: Record<string, string> = {}; // in-memory cache: id -> HTML
 
 const InvoiceList = () => {
   const navigate = useNavigate();
@@ -61,8 +63,13 @@ const InvoiceList = () => {
     setFilteredInvoices(invoices);
   };
 
-  const downloadInvoice = (invoice: Invoice) => {
-    const invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
+  // PRINTABLE INVOICE: try to cache HTML string for the invoice id
+  const printInvoice = (invoice: Invoice) => {
+    let invoiceHTML = printableInvoiceCache[invoice.id];
+    if (!invoiceHTML) {
+      invoiceHTML = ReactDOMServer.renderToString(<PrintableInvoice {...invoice} />);
+      printableInvoiceCache[invoice.id] = invoiceHTML;
+    }
     const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
@@ -90,22 +97,6 @@ const InvoiceList = () => {
       }, 500);
     }
   };
-  const doc = new jsPDF();
-    
-    doc.html(invoiceHTML, {
-      callback: function(doc) {
-        const pdfBlob = doc.output('blob');
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(pdfBlob);
-        link.download = `GM_Auto_Invoice_${invoice.customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      },
-      x: 10,
-      y: 10
-    });
 
   const handleEdit = (id: string) => {
     navigate(`/edit/${id}`);
@@ -192,7 +183,10 @@ const InvoiceList = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
-          <DateRangeFilter dateRange={dateRange} onDateRangeChange={setDateRange} />
+          <DateRangeFilter
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+          />
           <VehicleSearch value={searchVehicle} onChange={setSearchVehicle} />
           <Button
             variant="secondary"
@@ -229,6 +223,7 @@ const InvoiceList = () => {
                 onEdit={handleEdit}
                 onDownload={downloadInvoice}
                 onShare={handleShare}
+                onPrint={printInvoice} {/* Pass the print handler */}
                 onDelete={(id) => setInvoiceToDelete(id)}
               />
             ))}
