@@ -1,16 +1,16 @@
 import React from 'react';
 import { format } from 'date-fns';
-import { Phone, Calendar, Edit2, Download, Share2, Trash2, Printer } from 'lucide-react';
+import { Phone, Calendar, Edit2, Download, Trash2, Printer } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { Invoice } from '@/types/invoice';
 import { parseInvoiceDate } from '@/utils/dateUtils';
 
+// Remove 'onShare' from InvoiceCardProps interface
 interface InvoiceCardProps {
   invoice: Invoice;
   onEdit: (id: string) => void;
   onDownload: (invoice: Invoice) => void;
-  onShare: (invoice: Invoice) => void;
   onPrint: (invoice: Invoice) => void;
   onDelete: (id: string) => void;
 }
@@ -19,7 +19,6 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
   invoice,
   onEdit,
   onDownload,
-  onShare,
   onPrint,
   onDelete,
 }) => {
@@ -65,15 +64,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({
             >
               <Download className="h-4 w-4" />
             </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => onShare(invoice)}
-              className="hover:bg-violet-100 transition-colors"
-              aria-label="Share Invoice"
-            >
-              <Share2 className="h-4 w-4" />
-            </Button>
+            {/* Removed Share button */}
             <Button
               variant="outline"
               size="icon"

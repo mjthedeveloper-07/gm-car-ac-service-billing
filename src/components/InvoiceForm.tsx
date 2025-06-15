@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
 import { useToast } from "@/components/ui/use-toast";
 import jsPDF from 'jspdf';
-import { shareInvoice } from '../utils/shareInvoice';
 
 interface ServiceItem {
   description: string;

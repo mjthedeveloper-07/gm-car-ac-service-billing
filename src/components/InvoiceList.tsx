@@ -7,8 +7,6 @@ import { Wallet, Search as SearchIcon } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import ReactDOMServer from 'react-dom/server';
 import jsPDF from 'jspdf';
-import { shareInvoice } from '../utils/shareInvoice';
-import { toast } from "sonner";
 import { isAfter, isBefore, isEqual } from 'date-fns';
 import type { Invoice } from '@/types/invoice';
 import { parseInvoiceDate } from '@/utils/dateUtils';
