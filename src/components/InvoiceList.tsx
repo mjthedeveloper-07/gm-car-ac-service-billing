@@ -16,6 +16,7 @@ import InvoiceCard from './invoice/InvoiceCard';
 import PrintableInvoice from './PrintableInvoice';
 import { format } from "date-fns";
 import { useToast, toast } from "@/components/ui/use-toast";
+import html2canvas from 'html2canvas';
 
 const printableInvoiceCache: Record<string, string> = {}; // in-memory cache: id -> HTML
 
@@ -142,35 +143,60 @@ const InvoiceList = () => {
     toast({ title: "All invoices saved as PDFs" });
   };
 
-  // Add handler to download a single invoice as PDF
-  const downloadInvoice = (invoice: Invoice) => {
-    // Generate simple PDF from invoice object.
-    const doc = new jsPDF();
+  // Add handler to download a single invoice as PDF - Fully styled using PrintableInvoice
+  const downloadInvoice = async (invoice: Invoice) => {
+    // Create a hidden container to render PrintableInvoice
+    const hiddenDiv = document.createElement('div');
+    hiddenDiv.style.position = 'fixed';
+    hiddenDiv.style.left = '-9999px';
+    hiddenDiv.style.top = '0';
+    hiddenDiv.style.width = '800px';
+    hiddenDiv.style.background = "#fff";
+    document.body.appendChild(hiddenDiv);
 
-    doc.setFontSize(16);
-    doc.text(`Invoice #${invoice.id}`, 14, 20);
-
-    doc.setFontSize(12);
-    doc.text(`Date: ${format(parseInvoiceDate(invoice.date), 'PPP')}`, 14, 30);
-    doc.text(`Customer Name: ${invoice.customerName}`, 14, 40);
-    doc.text(`Phone: ${invoice.customerPhone}`, 14, 50);
-    doc.text(`Vehicle Model: ${invoice.vehicleModel}`, 14, 60);
-    doc.text(`Vehicle Number: ${invoice.vehicleNumber}`, 14, 70);
-
-    let currentY = 85;
-    doc.text("Services:", 14, currentY);
-    currentY += 8;
-
-    invoice.services.forEach((service, index) => {
-      doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
-      currentY += 8;
+    // Render PrintableInvoice component into the hidden div
+    // NOTE: The <PrintableInvoice> expects `...invoice` props
+    //      We'll use ReactDOMServer and set innerHTML for a static HTML option (for perfect match with print)
+    // It's easier to render the live component for html2canvas; let's use React 18 API:
+    import('react-dom').then(ReactDOM => {
+      ReactDOM.render(<PrintableInvoice {...invoice} />, hiddenDiv);
     });
 
-    currentY += 5;
-    doc.text(`Total: ₹${invoice.total}`, 14, currentY);
+    // Wait for the component to mount/render (simple delay for content to appear)
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
+    // Use html2canvas to "screenshot" the content
+    const canvas = await html2canvas(hiddenDiv, { scale: 2, backgroundColor: "#fff" });
+    const imgData = canvas.toDataURL('image/png');
+
+    // Compose the PDF (A4 page size)
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'a4'
+    });
+
+    // Calculate image dimensions
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = pdf.internal.pageSize.getHeight();
+
+    // img native size
+    const imgWidth = canvas.width;
+    const imgHeight = canvas.height;
+
+    // Scale image to fit PDF width (preserve aspect)
+    const ratio = Math.min(pdfWidth / imgWidth, (pdfHeight - 24) / imgHeight);
+    const printWidth = imgWidth * ratio;
+    const printHeight = imgHeight * ratio;
+
+    pdf.addImage(imgData, 'PNG', (pdfWidth - printWidth) / 2, 12, printWidth, printHeight);
+
+    // Download with appropriate name
     const safeName = invoice.customerName.replace(/\s+/g, '_');
-    doc.save(`Invoice_${safeName}_${invoice.id}.pdf`);
+    pdf.save(`Invoice_${safeName}_${invoice.id}.pdf`);
+
+    // Cleanup
+    document.body.removeChild(hiddenDiv);
   };
 
   return (
