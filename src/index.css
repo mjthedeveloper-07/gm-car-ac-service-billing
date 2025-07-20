@@ -107,3 +107,37 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Print Styles for Invoice */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  
+  #printable-invoice, #printable-invoice * {
+    visibility: visible;
+  }
+  
+  #printable-invoice {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .print-button {
+    display: none !important;
+  }
+  
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
+  
+  /* Ensure colors print properly */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}
