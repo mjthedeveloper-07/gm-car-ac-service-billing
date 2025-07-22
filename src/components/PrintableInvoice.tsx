@@ -160,7 +160,9 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
                 {services.map((service, index) => (
                   <tr key={index} className="border-b border-automotive-grey/20">
                     <td className="border border-automotive-grey/30 py-3 px-4">
-                      <div className="font-medium">{service.description}</div>
+                      <div className="font-medium">
+                        {service.description} (Qty: {service.quantity})
+                      </div>
                       {service.details && (
                         <div className="text-sm text-automotive-grey mt-1 italic">
                           {service.details}
@@ -187,9 +189,9 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
             <div className="w-full max-w-md">
               <div className="bg-secondary/20 p-4 rounded-lg border border-automotive-grey/30">
                 <div className="space-y-2">
-                  <div className="flex justify-between py-1">
-                    <span className="font-medium">Subtotal:</span>
-                    <span>₹{subtotal.toFixed(2)}</span>
+                  <div className="flex justify-between py-1 border-b border-automotive-grey/20">
+                    <span className="font-medium text-lg">SUBTOTAL:</span>
+                    <span className="font-bold text-lg">₹{subtotal.toFixed(2)}</span>
                   </div>
                   
                   {taxType === 'intra' ? (
@@ -210,9 +212,9 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
                     </div>
                   )}
                   
-                  <div className="border-t-2 border-primary pt-2 mt-3">
-                    <div className="flex justify-between text-lg font-bold text-primary">
-                      <span>GRAND TOTAL:</span>
+                  <div className="border-t-2 border-primary pt-3 mt-3">
+                    <div className="flex justify-between text-xl font-bold text-primary">
+                      <span>GRAND TOTAL (including GST):</span>
                       <span>₹{total.toFixed(2)}</span>
                     </div>
                   </div>
