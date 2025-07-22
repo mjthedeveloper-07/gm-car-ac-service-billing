@@ -4,6 +4,7 @@ export interface ServiceItem {
   quantity: number;
   rate: number;
   amount: number;
+  details?: string; // Short description like "AC Gas Refill – includes vacuuming and R134a gas top-up"
 }
 
 export interface Invoice {

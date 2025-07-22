@@ -33,7 +33,7 @@ const InvoiceForm = () => {
   
   // Services
   const [services, setServices] = useState<ServiceItem[]>([
-    { description: '', quantity: 1, rate: 0, amount: 0 }
+    { description: '', quantity: 1, rate: 0, amount: 0, details: '' }
   ]);
   
   // Tax Settings
@@ -78,7 +78,7 @@ const InvoiceForm = () => {
   }, []);
 
   const addService = () => {
-    setServices([...services, { description: '', quantity: 1, rate: 0, amount: 0 }]);
+    setServices([...services, { description: '', quantity: 1, rate: 0, amount: 0, details: '' }]);
   };
 
   const removeService = (index: number) => {
@@ -267,7 +267,7 @@ const InvoiceForm = () => {
     setCustomerGST('');
     setVehicleModel('');
     setVehicleNumber('');
-    setServices([{ description: '', quantity: 1, rate: 0, amount: 0 }]);
+    setServices([{ description: '', quantity: 1, rate: 0, amount: 0, details: '' }]);
   };
 
   return (
@@ -398,88 +398,101 @@ const InvoiceForm = () => {
               <div className="space-y-4">
                 {services.map((service, index) => (
                   <Card key={index} className="p-4 bg-muted/50">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
-                      <div className="lg:col-span-2">
-                        <Label>Service Description</Label>
-                        <Select 
-                          value={service.description} 
-                          onValueChange={(value) => {
-                            if (value === 'custom') {
-                              updateService(index, 'description', '');
-                            } else {
-                              const selectedService = defaultServices.find(s => s.name === value);
-                              if (selectedService) {
-                                selectPredefinedService(index, selectedService.id);
-                              }
-                            }
-                          }}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue placeholder="Select or enter custom service" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {defaultServices.map((predefinedService) => (
-                              <SelectItem key={predefinedService.id} value={predefinedService.name}>
-                                {predefinedService.name} - ₹{predefinedService.defaultRate}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="custom">Custom Service</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        {!defaultServices.some(s => s.name === service.description) && (
-                          <Input 
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
+                        <div className="lg:col-span-2">
+                          <Label>Service Description</Label>
+                          <Select 
                             value={service.description} 
-                            onChange={e => updateService(index, 'description', e.target.value)} 
-                            placeholder="Enter custom service"
-                            className="mt-2"
-                          />
-                        )}
-                      </div>
-                      
-                      <div>
-                        <Label>Quantity</Label>
-                        <Input 
-                          type="number" 
-                          min="1"
-                          value={service.quantity} 
-                          onChange={e => updateService(index, 'quantity', parseInt(e.target.value) || 1)} 
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Rate (₹)</Label>
-                        <Input 
-                          type="number" 
-                          min="0"
-                          step="0.01"
-                          value={service.rate} 
-                          onChange={e => updateService(index, 'rate', parseFloat(e.target.value) || 0)} 
-                          className="mt-1"
-                        />
-                      </div>
-                      
-                      <div>
-                        <Label>Amount (₹)</Label>
-                        <Input 
-                          type="number" 
-                          value={service.amount} 
-                          readOnly 
-                          className="mt-1 bg-muted"
-                        />
-                      </div>
-                      
-                      <div>
-                        {services.length > 1 && (
-                          <Button 
-                            type="button" 
-                            variant="destructive" 
-                            size="sm"
-                            onClick={() => removeService(index)}
+                            onValueChange={(value) => {
+                              if (value === 'custom') {
+                                updateService(index, 'description', '');
+                              } else {
+                                const selectedService = defaultServices.find(s => s.name === value);
+                                if (selectedService) {
+                                  selectPredefinedService(index, selectedService.id);
+                                }
+                              }
+                            }}
                           >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        )}
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Select or enter custom service" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {defaultServices.map((predefinedService) => (
+                                <SelectItem key={predefinedService.id} value={predefinedService.name}>
+                                  {predefinedService.name} - ₹{predefinedService.defaultRate}
+                                </SelectItem>
+                              ))}
+                              <SelectItem value="custom">Custom Service</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {!defaultServices.some(s => s.name === service.description) && (
+                            <Input 
+                              value={service.description} 
+                              onChange={e => updateService(index, 'description', e.target.value)} 
+                              placeholder="Enter custom service"
+                              className="mt-2"
+                            />
+                          )}
+                        </div>
+                        
+                        <div>
+                          <Label>Quantity</Label>
+                          <Input 
+                            type="number" 
+                            min="1"
+                            value={service.quantity} 
+                            onChange={e => updateService(index, 'quantity', parseInt(e.target.value) || 1)} 
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>Rate (₹)</Label>
+                          <Input 
+                            type="number" 
+                            min="0"
+                            step="0.01"
+                            value={service.rate} 
+                            onChange={e => updateService(index, 'rate', parseFloat(e.target.value) || 0)} 
+                            className="mt-1"
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label>Amount (₹)</Label>
+                          <Input 
+                            type="number" 
+                            value={service.amount} 
+                            readOnly 
+                            className="mt-1 bg-muted"
+                          />
+                        </div>
+                        
+                        <div>
+                          {services.length > 1 && (
+                            <Button 
+                              type="button" 
+                              variant="destructive" 
+                              size="sm"
+                              onClick={() => removeService(index)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Service Details Field */}
+                      <div className="mt-3">
+                        <Label>Service Details (Optional)</Label>
+                        <Input 
+                          value={service.details || ''} 
+                          onChange={e => updateService(index, 'details', e.target.value)} 
+                          placeholder="e.g., AC Gas Refill – includes vacuuming and R134a gas top-up"
+                          className="mt-1"
+                        />
                       </div>
                     </div>
                   </Card>

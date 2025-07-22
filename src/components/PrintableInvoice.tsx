@@ -5,6 +5,7 @@ interface ServiceItem {
   quantity: number;
   rate: number;
   amount: number;
+  details?: string;
 }
 
 interface InvoiceProps {
@@ -159,7 +160,12 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
                 {services.map((service, index) => (
                   <tr key={index} className="border-b border-automotive-grey/20">
                     <td className="border border-automotive-grey/30 py-3 px-4">
-                      {service.description}
+                      <div className="font-medium">{service.description}</div>
+                      {service.details && (
+                        <div className="text-sm text-automotive-grey mt-1 italic">
+                          {service.details}
+                        </div>
+                      )}
                     </td>
                     <td className="border border-automotive-grey/30 py-3 px-4 text-center">
                       {service.quantity}
