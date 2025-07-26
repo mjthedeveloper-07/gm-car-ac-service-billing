@@ -1,10 +1,14 @@
 
 export interface ServiceItem {
   description: string;
+  hsn: string;
   quantity: number;
   rate: number;
-  amount: number;
-  details?: string; // Short description like "AC Gas Refill – includes vacuuming and R134a gas top-up"
+  taxableValue: number;
+  gstPercent: number;
+  gstAmount: number;
+  total: number;
+  details?: string;
 }
 
 export interface Invoice {
@@ -12,16 +16,36 @@ export interface Invoice {
   date: string;
   customerName: string;
   customerPhone: string;
+  customerAddress: string;
+  customerState: string;
   customerGST?: string;
+  shipToName?: string;
+  shipToAddress?: string;
+  shipToState?: string;
+  shipToGST?: string;
   vehicleModel: string;
   vehicleNumber: string;
+  paymentMode: string;
+  reverseCharge: 'Yes' | 'No';
+  buyersOrderNo?: string;
+  suppliersRef?: string;
+  deliveryDate?: string;
+  termsOfDelivery?: string;
   services: ServiceItem[];
   subtotal: number;
   cgst: number;
   sgst: number;
   igst: number;
   total: number;
+  totalInWords: string;
   taxType: 'intra' | 'inter';
+  bankDetails?: {
+    bankName: string;
+    branch: string;
+    accountNo: string;
+    ifscCode: string;
+    upiId: string;
+  };
 }
 
 export interface CompanySettings {
