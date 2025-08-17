@@ -15,8 +15,8 @@ interface ServiceItem {
 interface InvoiceProps {
   customerName: string;
   customerPhone: string;
-  customerAddress: string;
-  customerState: string;
+  customerAddress?: string;
+  customerState?: string;
   customerGST?: string;
   shipToName?: string;
   shipToAddress?: string;
@@ -24,8 +24,8 @@ interface InvoiceProps {
   shipToGST?: string;
   vehicleModel: string;
   vehicleNumber: string;
-  paymentMode: string;
-  reverseCharge: 'Yes' | 'No';
+  paymentMode?: string;
+  reverseCharge?: 'Yes' | 'No';
   buyersOrderNo?: string;
   suppliersRef?: string;
   deliveryDate?: string;
@@ -36,7 +36,7 @@ interface InvoiceProps {
   sgst: number;
   igst: number;
   total: number;
-  totalInWords: string;
+  totalInWords?: string;
   date: string;
   id: string;
   taxType: 'intra' | 'inter';
@@ -220,8 +220,8 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
               <div className="bg-blue-50 p-2 border-b border-gray-400 font-semibold text-xs">Bill To</div>
               <div className="p-3 text-xs">
                 <div><strong>Name:</strong> {customerName}</div>
-                <div><strong>Address:</strong> {customerAddress}</div>
-                <div><strong>State:</strong> {customerState}</div>
+                 <div><strong>Address:</strong> {customerAddress || 'N/A'}</div>
+                <div><strong>State:</strong> {customerState || 'N/A'}</div>
                 {customerGST && <div><strong>GSTIN:</strong> {customerGST}</div>}
               </div>
             </div>
@@ -229,8 +229,8 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
               <div className="bg-blue-50 p-2 border-b border-gray-400 font-semibold text-xs">Ship To</div>
               <div className="p-3 text-xs">
                 <div><strong>Name:</strong> {shipToName || customerName}</div>
-                <div><strong>Address:</strong> {shipToAddress || customerAddress}</div>
-                <div><strong>State:</strong> {shipToState || customerState}</div>
+                <div><strong>Address:</strong> {shipToAddress || customerAddress || 'N/A'}</div>
+                <div><strong>State:</strong> {shipToState || customerState || 'N/A'}</div>
                 {(shipToGST || customerGST) && <div><strong>GSTIN:</strong> {shipToGST || customerGST}</div>}
               </div>
             </div>
@@ -241,8 +241,8 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
             <div className="text-xs space-y-1">
               <div><strong># Inv. No.:</strong> {id}</div>
               <div><strong>Inv. Date:</strong> {new Date(date).toLocaleDateString('en-IN')}</div>
-              <div><strong>Payment Mode:</strong> {paymentMode}</div>
-              <div><strong>Reverse Charge:</strong> {reverseCharge}</div>
+              <div><strong>Payment Mode:</strong> {paymentMode || 'Cash'}</div>
+              <div><strong>Reverse Charge:</strong> {reverseCharge || 'No'}</div>
             </div>
             <div className="text-xs space-y-1">
               {buyersOrderNo && <div><strong>Buyer's Order No.:</strong> {buyersOrderNo}</div>}

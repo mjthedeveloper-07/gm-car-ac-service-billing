@@ -128,7 +128,7 @@ const InvoiceList = () => {
       currentY += 8;
 
       invoice.services.forEach((service, index) => {
-        doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+        doc.text(`${index + 1}. ${service.description} - ₹${service.total}`, 20, currentY);
         currentY += 8;
       });
 
@@ -162,7 +162,7 @@ const InvoiceList = () => {
     currentY += 8;
 
     invoice.services.forEach((service, index) => {
-      doc.text(`${index + 1}. ${service.description} - ₹${service.amount}`, 20, currentY);
+      doc.text(`${index + 1}. ${service.description} - ₹${service.total}`, 20, currentY);
       currentY += 8;
     });
 

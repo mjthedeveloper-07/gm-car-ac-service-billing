@@ -16,8 +16,8 @@ export interface Invoice {
   date: string;
   customerName: string;
   customerPhone: string;
-  customerAddress: string;
-  customerState: string;
+  customerAddress?: string;
+  customerState?: string;
   customerGST?: string;
   shipToName?: string;
   shipToAddress?: string;
@@ -25,8 +25,8 @@ export interface Invoice {
   shipToGST?: string;
   vehicleModel: string;
   vehicleNumber: string;
-  paymentMode: string;
-  reverseCharge: 'Yes' | 'No';
+  paymentMode?: string;
+  reverseCharge?: 'Yes' | 'No';
   buyersOrderNo?: string;
   suppliersRef?: string;
   deliveryDate?: string;
@@ -37,7 +37,7 @@ export interface Invoice {
   sgst: number;
   igst: number;
   total: number;
-  totalInWords: string;
+  totalInWords?: string;
   taxType: 'intra' | 'inter';
   bankDetails?: {
     bankName: string;

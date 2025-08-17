@@ -33,7 +33,7 @@ const InvoiceForm = () => {
   
   // Services
   const [services, setServices] = useState<ServiceItem[]>([
-    { description: '', quantity: 1, rate: 0, amount: 0, details: '' }
+    { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' }
   ]);
   
   // Tax Settings
@@ -78,7 +78,7 @@ const InvoiceForm = () => {
   }, []);
 
   const addService = () => {
-    setServices([...services, { description: '', quantity: 1, rate: 0, amount: 0, details: '' }]);
+    setServices([...services, { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' }]);
   };
 
   const removeService = (index: number) => {
@@ -91,9 +91,13 @@ const InvoiceForm = () => {
     const updatedServices = [...services];
     updatedServices[index] = { ...updatedServices[index], [field]: value };
     
-    // Calculate amount when quantity or rate changes
+    // Calculate total when quantity or rate changes
     if (field === 'quantity' || field === 'rate') {
-      updatedServices[index].amount = updatedServices[index].quantity * updatedServices[index].rate;
+      const taxableValue = updatedServices[index].quantity * updatedServices[index].rate;
+      const gstAmount = (taxableValue * updatedServices[index].gstPercent) / 100;
+      updatedServices[index].taxableValue = taxableValue;
+      updatedServices[index].gstAmount = gstAmount;
+      updatedServices[index].total = taxableValue + gstAmount;
     }
     
     setServices(updatedServices);
@@ -104,12 +108,16 @@ const InvoiceForm = () => {
     if (service) {
       updateService(index, 'description', service.name);
       updateService(index, 'rate', service.defaultRate);
-      updateService(index, 'amount', services[index].quantity * service.defaultRate);
+      const taxableValue = services[index].quantity * service.defaultRate;
+      const gstAmount = (taxableValue * 18) / 100;
+      updateService(index, 'taxableValue', taxableValue);
+      updateService(index, 'gstAmount', gstAmount);
+      updateService(index, 'total', taxableValue + gstAmount);
     }
   };
 
   const calculateSubtotal = () => {
-    return services.reduce((sum, service) => sum + service.amount, 0);
+    return services.reduce((sum, service) => sum + service.taxableValue, 0);
   };
 
   const calculateTaxes = () => {
@@ -194,7 +202,7 @@ const InvoiceForm = () => {
       doc.text(service.description, 14, currentY);
       doc.text(service.quantity.toString(), 120, currentY);
       doc.text(`₹${service.rate}`, 140, currentY);
-      doc.text(`₹${service.amount}`, 170, currentY);
+      doc.text(`₹${service.total}`, 170, currentY);
       currentY += 6;
     });
     
@@ -267,7 +275,7 @@ const InvoiceForm = () => {
     setCustomerGST('');
     setVehicleModel('');
     setVehicleNumber('');
-    setServices([{ description: '', quantity: 1, rate: 0, amount: 0, details: '' }]);
+    setServices([{ description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' }]);
   };
 
   return (
@@ -464,7 +472,7 @@ const InvoiceForm = () => {
                           <Label>Amount (₹)</Label>
                           <Input 
                             type="number" 
-                            value={service.amount} 
+                            value={service.total} 
                             readOnly 
                             className="mt-1 bg-muted"
                           />
