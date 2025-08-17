@@ -35,6 +35,20 @@ const InvoiceForm = () => {
   const [services, setServices] = useState<ServiceItem[]>([
     { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' }
   ]);
+
+  // Helper function to calculate service totals automatically
+  const calculateServiceTotals = (service: ServiceItem): ServiceItem => {
+    const taxableValue = service.quantity * service.rate;
+    const gstAmount = (taxableValue * service.gstPercent) / 100;
+    const total = taxableValue + gstAmount;
+    
+    return {
+      ...service,
+      taxableValue,
+      gstAmount,
+      total
+    };
+  };
   
   // Tax Settings
   const [taxType, setTaxType] = useState<'intra' | 'inter'>('intra');
@@ -78,7 +92,8 @@ const InvoiceForm = () => {
   }, []);
 
   const addService = () => {
-    setServices([...services, { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' }]);
+    const newService = { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' };
+    setServices([...services, calculateServiceTotals(newService)]);
   };
 
   const removeService = (index: number) => {
@@ -91,13 +106,9 @@ const InvoiceForm = () => {
     const updatedServices = [...services];
     updatedServices[index] = { ...updatedServices[index], [field]: value };
     
-    // Calculate total when quantity or rate changes
-    if (field === 'quantity' || field === 'rate') {
-      const taxableValue = updatedServices[index].quantity * updatedServices[index].rate;
-      const gstAmount = (taxableValue * updatedServices[index].gstPercent) / 100;
-      updatedServices[index].taxableValue = taxableValue;
-      updatedServices[index].gstAmount = gstAmount;
-      updatedServices[index].total = taxableValue + gstAmount;
+    // Auto-calculate totals for any changes that affect calculations
+    if (field === 'quantity' || field === 'rate' || field === 'gstPercent') {
+      updatedServices[index] = calculateServiceTotals(updatedServices[index]);
     }
     
     setServices(updatedServices);
@@ -106,13 +117,15 @@ const InvoiceForm = () => {
   const selectPredefinedService = (index: number, serviceId: string) => {
     const service = defaultServices.find(s => s.id === serviceId);
     if (service) {
-      updateService(index, 'description', service.name);
-      updateService(index, 'rate', service.defaultRate);
-      const taxableValue = services[index].quantity * service.defaultRate;
-      const gstAmount = (taxableValue * 18) / 100;
-      updateService(index, 'taxableValue', taxableValue);
-      updateService(index, 'gstAmount', gstAmount);
-      updateService(index, 'total', taxableValue + gstAmount);
+      const updatedServices = [...services];
+      updatedServices[index] = {
+        ...updatedServices[index],
+        description: service.name,
+        rate: service.defaultRate
+      };
+      // Auto-calculate totals with the new rate
+      updatedServices[index] = calculateServiceTotals(updatedServices[index]);
+      setServices(updatedServices);
     }
   };
 
@@ -275,7 +288,8 @@ const InvoiceForm = () => {
     setCustomerGST('');
     setVehicleModel('');
     setVehicleNumber('');
-    setServices([{ description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' }]);
+    const resetService = { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' };
+    setServices([calculateServiceTotals(resetService)]);
   };
 
   return (
