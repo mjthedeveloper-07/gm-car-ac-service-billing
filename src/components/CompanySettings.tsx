@@ -13,11 +13,11 @@ const CompanySettingsComponent = () => {
   const { toast } = useToast();
   
   const [settings, setSettings] = useState<CompanySettings>({
-    name: 'GM Car AC Service & Multibrand',
-    address: 'Shop Address, City, State - PIN',
+    name: 'GM CAR A/C SERVICE & Cool Sales & Engine Dercarbonisation PVT LTD',
+    address: 'No:16 Gangai Amman, Kallikuppam, Ambattur, Chennai-53 Tamilnadu',
     gstNumber: 'GSTIN123456789',
-    phone: '+91 9876543210',
-    email: 'info@gmcarservice.com',
+    phone: '+91 8428000085',
+    email: 'gmautocool@gmail.com',
     cgstRate: 9,
     sgstRate: 9,
     igstRate: 18
