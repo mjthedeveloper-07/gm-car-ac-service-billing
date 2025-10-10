@@ -18,8 +18,21 @@ import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { z } from 'zod';
 
 const printableInvoiceCache: Record<string, string> = {}; // in-memory cache: id -> HTML
+
+// Validation schemas
+const searchSchema = z.string().max(50, "Search term too long").regex(/^[a-zA-Z0-9\s-]*$/, "Invalid characters in search");
+const dateRangeSchema = z.object({
+  from: z.date().optional(),
+  to: z.date().optional()
+}).refine(data => {
+  if (data.from && data.to) {
+    return data.from <= data.to;
+  }
+  return true;
+}, "Start date must be before end date");
 
 const InvoiceList = () => {
   const navigate = useNavigate();
@@ -74,20 +87,34 @@ const InvoiceList = () => {
   useEffect(() => {
     let result = invoices;
 
+    // Validate and apply search filter
     if (searchVehicle.trim() !== "") {
-      result = result.filter(invoice =>
-        invoice.vehicleNumber.toLowerCase().includes(searchVehicle.trim().toLowerCase())
-      );
+      try {
+        const validatedSearch = searchSchema.parse(searchVehicle);
+        result = result.filter(invoice =>
+          invoice.vehicleNumber.toLowerCase().includes(validatedSearch.trim().toLowerCase())
+        );
+      } catch (error) {
+        // Invalid search term, skip filtering
+        console.warn("Invalid search term:", error);
+      }
     }
 
+    // Validate and apply date range filter
     if (dateRange.from && dateRange.to) {
-      result = result.filter(invoice => {
-        const dateObj = parseInvoiceDate(invoice.date);
-        return (
-          (isAfter(dateObj, dateRange.from) || isEqual(dateObj, dateRange.from)) &&
-          (isBefore(dateObj, dateRange.to) || isEqual(dateObj, dateRange.to))
-        );
-      });
+      try {
+        dateRangeSchema.parse(dateRange);
+        result = result.filter(invoice => {
+          const dateObj = parseInvoiceDate(invoice.date);
+          return (
+            (isAfter(dateObj, dateRange.from) || isEqual(dateObj, dateRange.from)) &&
+            (isBefore(dateObj, dateRange.to) || isEqual(dateObj, dateRange.to))
+          );
+        });
+      } catch (error) {
+        // Invalid date range, skip filtering
+        console.warn("Invalid date range:", error);
+      }
     }
 
     setFilteredInvoices(result);
@@ -241,9 +268,40 @@ const InvoiceList = () => {
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
           <DateRangeFilter
             dateRange={dateRange}
-            onDateRangeChange={setDateRange}
+            onDateRangeChange={(range) => {
+              // Validate date range
+              try {
+                dateRangeSchema.parse(range);
+                setDateRange(range);
+              } catch (error) {
+                if (error instanceof z.ZodError) {
+                  toast({ 
+                    title: "Invalid date range", 
+                    description: error.errors[0].message,
+                    variant: "destructive" 
+                  });
+                }
+              }
+            }}
           />
-          <VehicleSearch value={searchVehicle} onChange={setSearchVehicle} />
+          <VehicleSearch 
+            value={searchVehicle} 
+            onChange={(value) => {
+              // Validate on input
+              try {
+                searchSchema.parse(value);
+                setSearchVehicle(value);
+              } catch (error) {
+                if (error instanceof z.ZodError) {
+                  toast({ 
+                    title: "Invalid search input", 
+                    description: error.errors[0].message,
+                    variant: "destructive" 
+                  });
+                }
+              }
+            }} 
+          />
           <Button
             variant="secondary"
             onClick={() => {
