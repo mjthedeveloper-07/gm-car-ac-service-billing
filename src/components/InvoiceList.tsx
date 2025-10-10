@@ -15,7 +15,8 @@ import VehicleSearch from './invoice/VehicleSearch';
 import InvoiceCard from './invoice/InvoiceCard';
 import PrintableInvoice from './PrintableInvoice';
 import { format } from "date-fns";
-import { useToast, toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
 const printableInvoiceCache: Record<string, string> = {}; // in-memory cache: id -> HTML
