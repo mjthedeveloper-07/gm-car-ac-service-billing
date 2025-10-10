@@ -84,6 +84,38 @@ const InvoiceList = () => {
     }
   };
 
+  // Validated search handler
+  const handleSearchChange = (value: string) => {
+    try {
+      const validated = searchSchema.parse(value);
+      setSearchVehicle(validated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({ 
+          title: "Invalid search term", 
+          description: error.errors[0].message,
+          variant: "destructive" 
+        });
+      }
+    }
+  };
+
+  // Validated date range handler
+  const handleDateRangeChange = (range: { from: Date | undefined, to: Date | undefined }) => {
+    try {
+      dateRangeSchema.parse(range);
+      setDateRange(range);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({ 
+          title: "Invalid date range", 
+          description: error.errors[0].message,
+          variant: "destructive" 
+        });
+      }
+    }
+  };
+
   useEffect(() => {
     let result = invoices;
 
@@ -268,39 +300,11 @@ const InvoiceList = () => {
         <div className="flex flex-col md:flex-row gap-2 mb-4 items-start md:items-end">
           <DateRangeFilter
             dateRange={dateRange}
-            onDateRangeChange={(range) => {
-              // Validate date range
-              try {
-                dateRangeSchema.parse(range);
-                setDateRange(range);
-              } catch (error) {
-                if (error instanceof z.ZodError) {
-                  toast({ 
-                    title: "Invalid date range", 
-                    description: error.errors[0].message,
-                    variant: "destructive" 
-                  });
-                }
-              }
-            }}
+            onDateRangeChange={handleDateRangeChange}
           />
           <VehicleSearch 
             value={searchVehicle} 
-            onChange={(value) => {
-              // Validate on input
-              try {
-                searchSchema.parse(value);
-                setSearchVehicle(value);
-              } catch (error) {
-                if (error instanceof z.ZodError) {
-                  toast({ 
-                    title: "Invalid search input", 
-                    description: error.errors[0].message,
-                    variant: "destructive" 
-                  });
-                }
-              }
-            }} 
+            onChange={handleSearchChange} 
           />
           <Button
             variant="secondary"
