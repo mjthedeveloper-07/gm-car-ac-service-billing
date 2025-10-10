@@ -16,6 +16,7 @@ import InvoiceCard from './invoice/InvoiceCard';
 import PrintableInvoice from './PrintableInvoice';
 import { format } from "date-fns";
 import { useToast, toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const printableInvoiceCache: Record<string, string> = {}; // in-memory cache: id -> HTML
 
@@ -28,10 +29,46 @@ const InvoiceList = () => {
   const [dateRange, setDateRange] = useState<{ from: Date | undefined, to: Date | undefined }>({ from: undefined, to: undefined });
 
   useEffect(() => {
-    const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    setInvoices(storedInvoices);
-    setFilteredInvoices(storedInvoices);
+    loadInvoices();
   }, []);
+
+  const loadInvoices = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .order('date', { ascending: false });
+
+      if (error) throw error;
+
+      // Convert database format to Invoice type
+      const formattedInvoices: Invoice[] = (data || []).map((inv: any) => ({
+        id: inv.invoice_number,
+        date: inv.date,
+        customerName: inv.customer_name,
+        customerPhone: inv.customer_phone || '',
+        customerGST: inv.customer_gst,
+        vehicleModel: inv.vehicle_model || '',
+        vehicleNumber: inv.vehicle_number || '',
+        services: inv.services || [],
+        subtotal: parseFloat(inv.subtotal || 0),
+        cgst: parseFloat(inv.cgst || 0),
+        sgst: parseFloat(inv.sgst || 0),
+        igst: parseFloat(inv.igst || 0),
+        total: parseFloat(inv.total || 0),
+        taxType: inv.tax_type as 'intra' | 'inter'
+      }));
+
+      setInvoices(formattedInvoices);
+      setFilteredInvoices(formattedInvoices);
+    } catch (error) {
+      console.error('Error loading invoices:', error);
+      // Fallback to localStorage
+      const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+      setInvoices(storedInvoices);
+      setFilteredInvoices(storedInvoices);
+    }
+  };
 
   useEffect(() => {
     let result = invoices;
@@ -100,12 +137,30 @@ const InvoiceList = () => {
     navigate(`/edit/${id}`);
   };
 
-  const handleDelete = (id: string) => {
-    const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
-    localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
-    setInvoices(updatedInvoices);
-    setFilteredInvoices(updatedInvoices);
-    toast({ title: "Invoice deleted successfully" });
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .delete()
+        .eq('invoice_number', id);
+
+      if (error) throw error;
+
+      // Also remove from localStorage
+      const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
+      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      
+      setInvoices(updatedInvoices);
+      setFilteredInvoices(updatedInvoices);
+      toast({ title: "Invoice deleted successfully" });
+    } catch (error) {
+      console.error('Error deleting invoice:', error);
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete invoice",
+        variant: "destructive" 
+      });
+    }
     setInvoiceToDelete(null);
   };
 

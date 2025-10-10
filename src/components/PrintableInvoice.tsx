@@ -182,216 +182,187 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
           </button>
         </div>
 
-        {/* Invoice Content */}
-        <div className="p-6 bg-white text-black" id="printable-invoice" style={{ fontSize: '12px', lineHeight: '1.3' }}>
-          {/* Header Section */}
-          <div className="border border-gray-400 mb-4">
-            <div className="grid grid-cols-3 border-b border-gray-400">
-              <div className="p-3 border-r border-gray-400">
-                <div className="text-xs font-semibold mb-1">GSTIN: {companyDetails.gstin}</div>
-                <div className="flex items-start gap-3">
-                  <div className="w-16 h-16 bg-primary/10 border border-gray-300 rounded flex items-center justify-center text-xs">
-                    <img 
-                      src="/lovable-uploads/a502963b-46f0-4da9-a374-6d5b6261e7d4.png"
-                      alt="Logo"
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm text-blue-800">{companyDetails.name}</div>
-                    <div className="text-xs text-gray-600 mt-1">Car Service - {companyDetails.city}</div>
-                    <div className="text-xs">{companyDetails.address}</div>
-                    <div className="text-xs">Contact No.: {companyDetails.phone}</div>
-                  </div>
-                </div>
+        {/* Invoice Content - Simplified version matching blueprint */}
+        <div className="p-8 bg-white text-black" id="printable-invoice" style={{ fontSize: '13px', lineHeight: '1.4' }}>
+          
+          {/* Header */}
+          <div className="border-2 border-black mb-2">
+            <div className="text-center py-2 font-bold text-lg border-b-2 border-black">
+              Tax Invoice
+            </div>
+            <div className="p-4">
+              <div className="font-bold text-xl mb-2">{companyDetails.name}</div>
+              <div className="text-sm">{companyDetails.address}</div>
+              <div className="grid grid-cols-2 mt-3 text-sm">
+                <div>Phone: <span className="font-semibold">{companyDetails.phone}</span></div>
+                <div className="text-right">GSTIN: <span className="font-semibold">{companyDetails.gstin}</span></div>
               </div>
-              <div className="p-3 text-center">
-                <div className="font-bold text-lg">Tax Invoice</div>
-              </div>
-              <div className="p-3 text-right text-xs">
-                <div>Original/Duplicate Bill</div>
-              </div>
+              <div className="text-sm">State: <span className="font-semibold">33-Tamil Nadu</span></div>
             </div>
           </div>
 
-          {/* Bill To & Ship To Section */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="border border-gray-400">
-              <div className="bg-blue-50 p-2 border-b border-gray-400 font-semibold text-xs">Bill To</div>
-              <div className="p-3 text-xs">
-                <div><strong>Name:</strong> {customerName}</div>
-                 <div><strong>Address:</strong> {customerAddress || 'N/A'}</div>
-                <div><strong>State:</strong> {customerState || 'N/A'}</div>
-                {customerGST && <div><strong>GSTIN:</strong> {customerGST}</div>}
-              </div>
+          {/* Bill To & Invoice Details */}
+          <div className="border-2 border-black grid grid-cols-2">
+            <div className="border-r-2 border-black p-3">
+              <div className="font-bold mb-1">Bill To:</div>
+              <div className="font-bold text-base">{customerName}</div>
             </div>
-            <div className="border border-gray-400">
-              <div className="bg-blue-50 p-2 border-b border-gray-400 font-semibold text-xs">Ship To</div>
-              <div className="p-3 text-xs">
-                <div><strong>Name:</strong> {shipToName || customerName}</div>
-                <div><strong>Address:</strong> {shipToAddress || customerAddress || 'N/A'}</div>
-                <div><strong>State:</strong> {shipToState || customerState || 'N/A'}</div>
-                {(shipToGST || customerGST) && <div><strong>GSTIN:</strong> {shipToGST || customerGST}</div>}
-              </div>
-            </div>
-          </div>
-
-          {/* Invoice Details */}
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="text-xs space-y-1">
-              <div><strong># Inv. No.:</strong> {id}</div>
-              <div><strong>Inv. Date:</strong> {new Date(date).toLocaleDateString('en-IN')}</div>
-              <div><strong>Payment Mode:</strong> {paymentMode || 'Cash'}</div>
-              <div><strong>Reverse Charge:</strong> {reverseCharge || 'No'}</div>
-            </div>
-            <div className="text-xs space-y-1">
-              {buyersOrderNo && <div><strong>Buyer's Order No.:</strong> {buyersOrderNo}</div>}
-              {suppliersRef && <div><strong>Supplier's Ref.:</strong> {suppliersRef}</div>}
-              <div><strong>Vehicle Number:</strong> {vehicleNumber}</div>
-              {deliveryDate && <div><strong>Delivery Date:</strong> {deliveryDate}</div>}
-              {termsOfDelivery && <div><strong>Terms Of Delivery:</strong> {termsOfDelivery}</div>}
+            <div className="p-3">
+              <div className="font-bold mb-1">Invoice Details:</div>
+              <div>No: <span className="font-semibold">{id}</span></div>
+              <div>Date: <span className="font-semibold">{new Date(date).toLocaleDateString('en-GB')}</span></div>
             </div>
           </div>
 
           {/* Items Table */}
-          <div className="border border-gray-400 mb-4">
-            <table className="w-full text-xs">
+          <div className="border-2 border-t-0 border-black">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="bg-blue-50">
-                  <th className="border-r border-gray-400 p-2 text-left">Sr</th>
-                  <th className="border-r border-gray-400 p-2 text-left">Goods & Service Description</th>
-                  <th className="border-r border-gray-400 p-2 text-center">HSN</th>
-                  <th className="border-r border-gray-400 p-2 text-center">Quantity</th>
-                  <th className="border-r border-gray-400 p-2 text-right">Rate</th>
-                  <th className="border-r border-gray-400 p-2 text-right">Taxable Value</th>
-                  <th className="border-r border-gray-400 p-2 text-center">GST %</th>
-                  <th className="border-r border-gray-400 p-2 text-right">GST Amt.</th>
-                  <th className="p-2 text-right">Total</th>
+                <tr className="border-b-2 border-black bg-gray-50">
+                  <th className="border-r border-black p-2 text-left w-8">#</th>
+                  <th className="border-r border-black p-2 text-left">Item name</th>
+                  <th className="border-r border-black p-2 text-center w-24">HSN/ SAC</th>
+                  <th className="border-r border-black p-2 text-center w-20">Quantity</th>
+                  <th className="border-r border-black p-2 text-right w-28">Price/ Unit(₹)</th>
+                  <th className="border-r border-black p-2 text-right w-28">GST(₹)</th>
+                  <th className="p-2 text-right w-28">Amount(₹)</th>
                 </tr>
               </thead>
               <tbody>
                 {services.map((service, index) => (
-                  <tr key={index} className="border-t border-gray-400">
-                    <td className="border-r border-gray-400 p-2">{index + 1}</td>
-                    <td className="border-r border-gray-400 p-2">
-                      <div>{service.description}</div>
-                      {service.details && <div className="text-gray-600 italic">{service.details}</div>}
-                    </td>
-                    <td className="border-r border-gray-400 p-2 text-center">{service.hsn}</td>
-                    <td className="border-r border-gray-400 p-2 text-center">{service.quantity}</td>
-                    <td className="border-r border-gray-400 p-2 text-right">{service.rate.toFixed(2)}</td>
-                    <td className="border-r border-gray-400 p-2 text-right">{service.taxableValue.toFixed(2)}</td>
-                    <td className="border-r border-gray-400 p-2 text-center">{service.gstPercent}%</td>
-                    <td className="border-r border-gray-400 p-2 text-right">{service.gstAmount.toFixed(2)}</td>
-                    <td className="p-2 text-right">{service.total.toFixed(2)}</td>
+                  <tr key={index} className="border-b border-black">
+                    <td className="border-r border-black p-2">{index + 1}</td>
+                    <td className="border-r border-black p-2 font-semibold">{service.description}</td>
+                    <td className="border-r border-black p-2 text-center">{service.hsn}</td>
+                    <td className="border-r border-black p-2 text-center">{service.quantity}</td>
+                    <td className="border-r border-black p-2 text-right">₹ {service.rate.toFixed(2)}</td>
+                    <td className="border-r border-black p-2 text-right">₹ {service.gstAmount.toFixed(2)} ({service.gstPercent}%)</td>
+                    <td className="p-2 text-right">₹ {service.total.toFixed(2)}</td>
                   </tr>
                 ))}
-                {/* Empty rows for padding */}
-                {Array.from({ length: Math.max(0, 8 - services.length) }).map((_, index) => (
-                  <tr key={`empty-${index}`} className="border-t border-gray-400">
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="border-r border-gray-400 p-3">&nbsp;</td>
-                    <td className="p-3">&nbsp;</td>
-                  </tr>
-                ))}
+                <tr className="border-b-2 border-black font-bold">
+                  <td colSpan={3} className="border-r border-black p-2">Total</td>
+                  <td className="border-r border-black p-2 text-center">{services.reduce((sum, s) => sum + s.quantity, 0)}</td>
+                  <td className="border-r border-black p-2"></td>
+                  <td className="border-r border-black p-2 text-right">₹ {services.reduce((sum, s) => sum + s.gstAmount, 0).toFixed(2)}</td>
+                  <td className="p-2 text-right">₹ {total.toFixed(2)}</td>
+                </tr>
               </tbody>
             </table>
           </div>
 
-          {/* Footer Section */}
-          <div className="grid grid-cols-2 gap-4">
-            {/* Left Column - Bank Details & Terms */}
-            <div className="space-y-4">
-              {/* Bank Details */}
-              <div className="border border-gray-400">
-                <div className="bg-blue-50 p-2 border-b border-gray-400 font-semibold text-xs">Our Bank Details</div>
-                <div className="p-3 text-xs space-y-1">
-                  <div><strong>Bank Name:</strong> {bankDetails?.bankName || 'STATE BANK OF INDIA'}</div>
-                  <div><strong>Branch:</strong> {bankDetails?.branch || 'Chennai'}</div>
-                  <div><strong>Account No:</strong> {bankDetails?.accountNo || '20412XXXX05'}</div>
-                  <div><strong>IFSC Code:</strong> {bankDetails?.ifscCode || 'SBIN003XXXX'}</div>
-                  <div><strong>UPI ID:</strong> {bankDetails?.upiId || 'yourid@upi'}</div>
-                </div>
-              </div>
-
-              {/* Terms & Conditions */}
-              <div className="text-xs">
-                <div className="font-semibold mb-2">Declaration</div>
-                <div className="space-y-1">
-                  <div>1. Subject to Mehsana jurisdiction</div>
-                  <div>2. Terms & conditions are subject to our trade policy</div>
-                  <div>3. Our risk & responsibility ceases after the delivery of goods.</div>
-                  <div className="mt-2 font-semibold">E. & O.E.</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Totals & Summary */}
-            <div className="space-y-4">
-              {/* Totals */}
-              <div className="border border-gray-400">
-                <div className="bg-blue-50 p-2 border-b border-gray-400 font-semibold text-xs text-center">SUMMARY</div>
-                <div className="text-xs">
-                  <div className="flex justify-between p-2 border-b border-gray-400">
-                    <span>Sub-Total:</span>
-                    <span>{subtotal.toFixed(2)}</span>
-                  </div>
-                  {taxType === 'intra' ? (
+          {/* Tax Summary */}
+          <div className="border-2 border-t-0 border-black">
+            <div className="p-2 bg-gray-50 font-bold border-b border-black">Tax Summary:</div>
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-black">
+                  <th rowSpan={2} className="border-r border-black p-2 text-center">HSN/ SAC</th>
+                  <th rowSpan={2} className="border-r border-black p-2 text-center">Taxable<br/>amount (₹)</th>
+                  <th colSpan={2} className="border-r border-black p-1 text-center">IGST</th>
+                  <th colSpan={2} className="border-r border-black p-1 text-center">CGST</th>
+                  <th colSpan={2} className="border-r border-black p-1 text-center">SGST</th>
+                  <th rowSpan={2} className="border-r border-black p-2 text-center">Total Tax (₹)</th>
+                  <th colSpan={3} className="p-1 text-center"></th>
+                </tr>
+                <tr className="border-b border-black">
+                  <th className="border-r border-black p-1 text-center">Rate<br/>(%)</th>
+                  <th className="border-r border-black p-1 text-center">Amt<br/>(₹)</th>
+                  <th className="border-r border-black p-1 text-center">Rate<br/>(%)</th>
+                  <th className="border-r border-black p-1 text-center">Amt<br/>(₹)</th>
+                  <th className="border-r border-black p-1 text-center">Rate<br/>(%)</th>
+                  <th className="border-r border-black p-1 text-center">Amt<br/>(₹)</th>
+                  <th className="border-r border-black p-1 text-center">Sub Total</th>
+                  <th className="border-r border-black p-1 text-center">:</th>
+                  <th className="p-1 text-right">₹ {total.toFixed(2)}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from(new Set(services.map(s => s.hsn))).map((hsn, idx) => {
+                  const hsnServices = services.filter(s => s.hsn === hsn);
+                  const taxableAmt = hsnServices.reduce((sum, s) => sum + s.taxableValue, 0);
+                  const gstRate = hsnServices[0]?.gstPercent || 0;
+                  const taxAmt = hsnServices.reduce((sum, s) => sum + s.gstAmount, 0);
+                  
+                  return (
+                    <tr key={idx} className="border-b border-black">
+                      <td className="border-r border-black p-2 text-center">{hsn}</td>
+                      <td className="border-r border-black p-2 text-right">{taxableAmt.toFixed(2)}</td>
+                      {taxType === 'inter' ? (
+                        <>
+                          <td className="border-r border-black p-2 text-center">{gstRate}</td>
+                          <td className="border-r border-black p-2 text-right">{taxAmt.toFixed(2)}</td>
+                          <td className="border-r border-black p-2 text-center"></td>
+                          <td className="border-r border-black p-2"></td>
+                          <td className="border-r border-black p-2 text-center"></td>
+                          <td className="border-r border-black p-2"></td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="border-r border-black p-2 text-center"></td>
+                          <td className="border-r border-black p-2"></td>
+                          <td className="border-r border-black p-2 text-center">{gstRate/2}</td>
+                          <td className="border-r border-black p-2 text-right">{(taxAmt/2).toFixed(2)}</td>
+                          <td className="border-r border-black p-2 text-center">{gstRate/2}</td>
+                          <td className="border-r border-black p-2 text-right">{(taxAmt/2).toFixed(2)}</td>
+                        </>
+                      )}
+                      <td className="border-r border-black p-2 text-right">{taxAmt.toFixed(2)}</td>
+                      <td className="border-r border-black p-1 font-semibold">Total</td>
+                      <td className="border-r border-black p-1 text-center">:</td>
+                      <td className="p-1 text-right font-semibold">₹ {total.toFixed(2)}</td>
+                    </tr>
+                  );
+                })}
+                <tr className="border-b border-black font-bold">
+                  <td className="border-r border-black p-2 text-center">TOTAL</td>
+                  <td className="border-r border-black p-2 text-right">{subtotal.toFixed(2)}</td>
+                  {taxType === 'inter' ? (
                     <>
-                      <div className="flex justify-between p-2 border-b border-gray-400">
-                        <span>CGST Amt.:</span>
-                        <span>{cgst.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between p-2 border-b border-gray-400">
-                        <span>SGST Amt.:</span>
-                        <span>{sgst.toFixed(2)}</span>
-                      </div>
+                      <td className="border-r border-black p-2 text-center"></td>
+                      <td className="border-r border-black p-2 text-right">{igst.toFixed(2)}</td>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2"></td>
                     </>
                   ) : (
-                    <div className="flex justify-between p-2 border-b border-gray-400">
-                      <span>IGST Amt.:</span>
-                      <span>{igst.toFixed(2)}</span>
-                    </div>
+                    <>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2 text-right">{cgst.toFixed(2)}</td>
+                      <td className="border-r border-black p-2"></td>
+                      <td className="border-r border-black p-2 text-right">{sgst.toFixed(2)}</td>
+                    </>
                   )}
-                  <div className="flex justify-between p-2 border-b border-gray-400">
-                    <span>Round off:</span>
-                    <span>0.00</span>
-                  </div>
-                  <div className="flex justify-between p-2 font-bold">
-                    <span>Total Amount:</span>
-                    <span>{total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Total in Words */}
-              <div className="text-xs">
-                <div className="font-semibold mb-1">Invoice Total in Word</div>
-                <div className="italic">Rupees {numberToWords(Math.round(total))}</div>
-              </div>
-
-              {/* QR Code & Signature */}
-              <div className="flex justify-between items-end">
-                <div className="w-20 h-20 border border-gray-400 flex items-center justify-center text-xs">
-                  QR Code
-                </div>
-                <div className="text-right text-xs">
-                  <div className="mb-8">For, {companyDetails.name}</div>
-                  <div className="border-t border-gray-400 pt-1">Authorised Signatory</div>
-                </div>
-              </div>
-            </div>
+                  <td className="border-r border-black p-2 text-right">{(cgst + sgst + igst).toFixed(2)}</td>
+                  <td rowSpan={3} colSpan={3} className="p-2">
+                    <div className="font-bold mb-1">Invoice Amount in Words:</div>
+                    <div className="text-xs italic">{numberToWords(Math.round(total))} only</div>
+                    <div className="mt-3">
+                      <div className="text-xs">Received<span className="ml-20">:</span><span className="ml-4">₹ {total.toFixed(2)}</span></div>
+                      <div className="text-xs">Balance<span className="ml-20">:</span><span className="ml-4">₹ 0.00</span></div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          {/* Thank You Note */}
-          <div className="text-center mt-4 text-xs font-semibold">
-            Thank You For Business With US!
+          {/* Terms & Conditions */}
+          <div className="border-2 border-t-0 border-black">
+            <div className="grid grid-cols-2">
+              <div className="border-r-2 border-black p-3">
+                <div className="font-bold mb-2 text-sm">Terms & Conditions:</div>
+                <div className="text-xs">Thanks for doing business with us!</div>
+              </div>
+              <div className="p-3 text-right">
+                <div className="mb-1 text-sm">For {companyDetails.name}:</div>
+                <div className="h-16"></div>
+                <div className="border-t-2 border-black pt-1 mt-2 text-sm">Authorized Signatory</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

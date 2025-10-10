@@ -14,7 +14,111 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      invoices: {
+        Row: {
+          balance_amount: number | null
+          buyers_order_no: string | null
+          cgst: number
+          created_at: string
+          customer_address: string | null
+          customer_gst: string | null
+          customer_name: string
+          customer_phone: string | null
+          customer_state: string | null
+          date: string
+          delivery_date: string | null
+          id: string
+          igst: number
+          invoice_number: string
+          payment_mode: string | null
+          received_amount: number | null
+          reverse_charge: string | null
+          services: Json
+          sgst: number
+          ship_to_address: string | null
+          ship_to_gst: string | null
+          ship_to_name: string | null
+          ship_to_state: string | null
+          subtotal: number
+          suppliers_ref: string | null
+          tax_type: string
+          terms_of_delivery: string | null
+          total: number
+          total_in_words: string | null
+          updated_at: string
+          vehicle_model: string | null
+          vehicle_number: string | null
+        }
+        Insert: {
+          balance_amount?: number | null
+          buyers_order_no?: string | null
+          cgst?: number
+          created_at?: string
+          customer_address?: string | null
+          customer_gst?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          customer_state?: string | null
+          date?: string
+          delivery_date?: string | null
+          id?: string
+          igst?: number
+          invoice_number: string
+          payment_mode?: string | null
+          received_amount?: number | null
+          reverse_charge?: string | null
+          services?: Json
+          sgst?: number
+          ship_to_address?: string | null
+          ship_to_gst?: string | null
+          ship_to_name?: string | null
+          ship_to_state?: string | null
+          subtotal?: number
+          suppliers_ref?: string | null
+          tax_type?: string
+          terms_of_delivery?: string | null
+          total?: number
+          total_in_words?: string | null
+          updated_at?: string
+          vehicle_model?: string | null
+          vehicle_number?: string | null
+        }
+        Update: {
+          balance_amount?: number | null
+          buyers_order_no?: string | null
+          cgst?: number
+          created_at?: string
+          customer_address?: string | null
+          customer_gst?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          customer_state?: string | null
+          date?: string
+          delivery_date?: string | null
+          id?: string
+          igst?: number
+          invoice_number?: string
+          payment_mode?: string | null
+          received_amount?: number | null
+          reverse_charge?: string | null
+          services?: Json
+          sgst?: number
+          ship_to_address?: string | null
+          ship_to_gst?: string | null
+          ship_to_name?: string | null
+          ship_to_state?: string | null
+          subtotal?: number
+          suppliers_ref?: string | null
+          tax_type?: string
+          terms_of_delivery?: string | null
+          total?: number
+          total_in_words?: string | null
+          updated_at?: string
+          vehicle_model?: string | null
+          vehicle_number?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

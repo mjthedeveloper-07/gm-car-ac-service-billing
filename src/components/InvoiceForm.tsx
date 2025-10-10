@@ -9,6 +9,7 @@ import { Receipt, Phone, Car, Plus, Trash2, Calculator } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import type { Invoice, ServiceItem, CompanySettings, PredefinedService } from '@/types/invoice';
+import { supabase } from "@/integrations/supabase/client";
 
 const defaultServices: PredefinedService[] = [
   { id: '1', name: 'AC Gas Filling', defaultRate: 1500 },
@@ -240,15 +241,16 @@ const InvoiceForm = () => {
     return doc.output('blob');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const taxes = calculateTaxes();
     const subtotal = calculateSubtotal();
+    const invoiceNumber = `INV-${Date.now()}`;
     
     const invoice: Invoice = {
-      id: Date.now().toString(),
-      date: new Date().toISOString().split('T')[0],
+      id: invoiceNumber,
+      date: new Date().toISOString(),
       customerName,
       customerPhone,
       customerGST: customerGST || undefined,
@@ -263,33 +265,52 @@ const InvoiceForm = () => {
       taxType
     };
 
-    // Save to localStorage
-    const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
+    try {
+      // Save to Supabase database
+      const { error } = await supabase.from('invoices').insert([{
+        invoice_number: invoiceNumber,
+        date: new Date().toISOString(),
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_gst: customerGST || null,
+        vehicle_model: vehicleModel,
+        vehicle_number: vehicleNumber,
+        services: services as any,
+        subtotal: subtotal,
+        cgst: taxes.cgst,
+        sgst: taxes.sgst,
+        igst: taxes.igst,
+        total: calculateTotal(),
+        tax_type: taxType
+      }]);
 
-    // Generate and download PDF
-    const pdfBlob = generatePDF(invoice);
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(pdfBlob);
-    link.download = `GM_Invoice_${customerName.replace(/\s+/g, '_')}_${invoice.id}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
+      if (error) throw error;
 
-    toast({
-      title: "Invoice Generated!",
-      description: `Invoice #${invoice.id} has been created and downloaded.`,
-    });
+      // Also save to localStorage for backward compatibility
+      const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+      localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
 
-    // Reset form
-    setCustomerName('');
-    setCustomerPhone('');
-    setCustomerGST('');
-    setVehicleModel('');
-    setVehicleNumber('');
-    const resetService = { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' };
-    setServices([calculateServiceTotals(resetService)]);
+      toast({
+        title: "Invoice Generated!",
+        description: `Invoice #${invoiceNumber} has been created and saved.`,
+      });
+
+      // Reset form
+      setCustomerName('');
+      setCustomerPhone('');
+      setCustomerGST('');
+      setVehicleModel('');
+      setVehicleNumber('');
+      const resetService = { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' };
+      setServices([calculateServiceTotals(resetService)]);
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save invoice. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
