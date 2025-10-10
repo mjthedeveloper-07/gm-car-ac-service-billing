@@ -15,7 +15,7 @@ const CompanySettingsComponent = () => {
   const [settings, setSettings] = useState<CompanySettings>({
     name: 'GM CAR A/C SERVICE & Cool Sales & Engine Dercarbonisation PVT LTD',
     address: 'No:16 Gangai Amman, Kallikuppam, Ambattur, Chennai-53 Tamilnadu',
-    gstNumber: 'GSTIN123456789',
+    gstNumber: '33ATXPM5584B1ZB',
     phone: '+91 8428000085',
     email: 'gmautocool@gmail.com',
     cgstRate: 9,
