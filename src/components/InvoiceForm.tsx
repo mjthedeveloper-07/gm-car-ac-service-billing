@@ -10,6 +10,26 @@ import { useToast } from "@/hooks/use-toast";
 import jsPDF from 'jspdf';
 import type { Invoice, ServiceItem, CompanySettings, PredefinedService } from '@/types/invoice';
 import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
+
+// Input validation schemas
+const phoneRegex = /^[+]?[0-9]{10,15}$/;
+const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+const vehicleNumberRegex = /^[A-Z]{2}[ -]?[0-9]{1,2}[ -]?[A-Z]{1,2}[ -]?[0-9]{4}$/i;
+
+const invoiceSchema = z.object({
+  customerName: z.string().trim().min(1, "Customer name is required").max(100, "Name too long"),
+  customerPhone: z.string().regex(phoneRegex, "Invalid phone number format").optional().or(z.literal('')),
+  customerGST: z.string().regex(gstRegex, "Invalid GST number format").optional().or(z.literal('')),
+  vehicleModel: z.string().trim().min(1, "Vehicle model is required").max(50, "Model name too long"),
+  vehicleNumber: z.string().regex(vehicleNumberRegex, "Invalid vehicle number format"),
+  services: z.array(z.object({
+    description: z.string().trim().min(1, "Service description required").max(200, "Description too long"),
+    quantity: z.number().positive("Quantity must be positive").int("Quantity must be a whole number"),
+    rate: z.number().positive("Rate must be positive"),
+    details: z.string().max(500, "Details too long").optional()
+  })).min(1, "At least one service is required")
+});
 
 const defaultServices: PredefinedService[] = [
   { id: '1', name: 'AC Gas Filling', defaultRate: 1500 },
@@ -244,6 +264,43 @@ const InvoiceForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Validate inputs using zod schema
+    try {
+      invoiceSchema.parse({
+        customerName,
+        customerPhone,
+        customerGST,
+        vehicleModel,
+        vehicleNumber,
+        services: services.map(s => ({
+          description: s.description,
+          quantity: s.quantity,
+          rate: s.rate,
+          details: s.details
+        }))
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create invoices.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     const taxes = calculateTaxes();
     const subtotal = calculateSubtotal();
     const invoiceNumber = `INV-${Date.now()}`;
@@ -251,11 +308,11 @@ const InvoiceForm = () => {
     const invoice: Invoice = {
       id: invoiceNumber,
       date: new Date().toISOString(),
-      customerName,
-      customerPhone,
-      customerGST: customerGST || undefined,
-      vehicleModel,
-      vehicleNumber,
+      customerName: customerName.trim(),
+      customerPhone: customerPhone.trim(),
+      customerGST: customerGST?.trim() || undefined,
+      vehicleModel: vehicleModel.trim(),
+      vehicleNumber: vehicleNumber.trim().toUpperCase(),
       services,
       subtotal,
       cgst: taxes.cgst,
@@ -266,15 +323,16 @@ const InvoiceForm = () => {
     };
 
     try {
-      // Save to Supabase database
+      // Save to Supabase database with user_id
       const { error } = await supabase.from('invoices').insert([{
+        user_id: user.id,
         invoice_number: invoiceNumber,
         date: new Date().toISOString(),
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        customer_gst: customerGST || null,
-        vehicle_model: vehicleModel,
-        vehicle_number: vehicleNumber,
+        customer_name: customerName.trim(),
+        customer_phone: customerPhone.trim(),
+        customer_gst: customerGST?.trim() || null,
+        vehicle_model: vehicleModel.trim(),
+        vehicle_number: vehicleNumber.trim().toUpperCase(),
         services: services as any,
         subtotal: subtotal,
         cgst: taxes.cgst,

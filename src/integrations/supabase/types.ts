@@ -46,6 +46,7 @@ export type Database = {
           total: number
           total_in_words: string | null
           updated_at: string
+          user_id: string | null
           vehicle_model: string | null
           vehicle_number: string | null
         }
@@ -80,6 +81,7 @@ export type Database = {
           total?: number
           total_in_words?: string | null
           updated_at?: string
+          user_id?: string | null
           vehicle_model?: string | null
           vehicle_number?: string | null
         }
@@ -114,6 +116,7 @@ export type Database = {
           total?: number
           total_in_words?: string | null
           updated_at?: string
+          user_id?: string | null
           vehicle_model?: string | null
           vehicle_number?: string | null
         }

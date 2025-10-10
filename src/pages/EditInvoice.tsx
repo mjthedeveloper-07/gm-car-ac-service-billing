@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ServiceItem {
   description: string;
@@ -27,6 +27,7 @@ interface Invoice {
 const EditInvoice = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { user, loading } = useAuth();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
@@ -34,6 +35,13 @@ const EditInvoice = () => {
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
 
   useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
+
+  useEffect(() => {
+    if (!user) return;
     const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
     const invoice = existingInvoices.find((inv: Invoice) => inv.id === id);
     
@@ -46,7 +54,15 @@ const EditInvoice = () => {
     } else {
       navigate('/');
     }
-  }, [id, navigate]);
+  }, [id, navigate, user]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   const addService = () => {
     setServices([...services, { description: '', amount: 0 }]);
