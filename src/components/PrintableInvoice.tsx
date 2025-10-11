@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ServiceItem {
   description: string;
@@ -90,6 +92,7 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
   taxType,
   bankDetails
 }) => {
+  const { user } = useAuth();
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
     name: 'GM CAR AC & SERVICE',
     address: 'No:16 Gangai Amman Kallikuppam, Ambattur Chennai-53',
@@ -102,12 +105,31 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
   });
 
   useEffect(() => {
-    const savedDetails = localStorage.getItem('companyDetails');
-    if (savedDetails) {
-      const details = JSON.parse(savedDetails);
-      setCompanyDetails(prev => ({ ...prev, ...details }));
-    }
-  }, []);
+    const fetchCompanyDetails = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('user_settings')
+        .select('company_name, company_address, phone, email, website, gst_number')
+        .eq('user_id', user.id)
+        .single();
+
+      if (data && !error) {
+        setCompanyDetails({
+          name: data.company_name || companyDetails.name,
+          address: data.company_address || companyDetails.address,
+          city: 'Chennai',
+          pincode: '600053',
+          phone: data.phone || companyDetails.phone,
+          email: data.email || companyDetails.email,
+          website: data.website || companyDetails.website,
+          gstin: data.gst_number || companyDetails.gstin
+        });
+      }
+    };
+
+    fetchCompanyDetails();
+  }, [user?.id]);
 
   const handlePrint = () => {
     window.print();
