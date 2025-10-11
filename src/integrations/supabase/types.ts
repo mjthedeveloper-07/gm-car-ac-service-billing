@@ -27,9 +27,15 @@ export type Database = {
           customer_state: string | null
           date: string
           delivery_date: string | null
+          discount_amount: number | null
+          discount_percent: number | null
+          due_date: string | null
           id: string
           igst: number
           invoice_number: string
+          is_locked: boolean | null
+          last_modified_by: string | null
+          notes: string | null
           payment_mode: string | null
           received_amount: number | null
           reverse_charge: string | null
@@ -39,6 +45,7 @@ export type Database = {
           ship_to_gst: string | null
           ship_to_name: string | null
           ship_to_state: string | null
+          status: string | null
           subtotal: number
           suppliers_ref: string | null
           tax_type: string
@@ -62,9 +69,15 @@ export type Database = {
           customer_state?: string | null
           date?: string
           delivery_date?: string | null
+          discount_amount?: number | null
+          discount_percent?: number | null
+          due_date?: string | null
           id?: string
           igst?: number
           invoice_number: string
+          is_locked?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
           payment_mode?: string | null
           received_amount?: number | null
           reverse_charge?: string | null
@@ -74,6 +87,7 @@ export type Database = {
           ship_to_gst?: string | null
           ship_to_name?: string | null
           ship_to_state?: string | null
+          status?: string | null
           subtotal?: number
           suppliers_ref?: string | null
           tax_type?: string
@@ -97,9 +111,15 @@ export type Database = {
           customer_state?: string | null
           date?: string
           delivery_date?: string | null
+          discount_amount?: number | null
+          discount_percent?: number | null
+          due_date?: string | null
           id?: string
           igst?: number
           invoice_number?: string
+          is_locked?: boolean | null
+          last_modified_by?: string | null
+          notes?: string | null
           payment_mode?: string | null
           received_amount?: number | null
           reverse_charge?: string | null
@@ -109,6 +129,7 @@ export type Database = {
           ship_to_gst?: string | null
           ship_to_name?: string | null
           ship_to_state?: string | null
+          status?: string | null
           subtotal?: number
           suppliers_ref?: string | null
           tax_type?: string
@@ -148,6 +169,11 @@ export type Database = {
       }
       user_settings: {
         Row: {
+          bank_account_no: string | null
+          bank_branch: string | null
+          bank_ifsc_code: string | null
+          bank_name: string | null
+          bank_upi_id: string | null
           cgst_rate: number
           company_address: string | null
           company_name: string
@@ -155,12 +181,19 @@ export type Database = {
           email: string | null
           gst_number: string | null
           igst_rate: number
+          logo_url: string | null
           phone: string | null
           sgst_rate: number
+          terms_and_conditions: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          bank_account_no?: string | null
+          bank_branch?: string | null
+          bank_ifsc_code?: string | null
+          bank_name?: string | null
+          bank_upi_id?: string | null
           cgst_rate?: number
           company_address?: string | null
           company_name: string
@@ -168,12 +201,19 @@ export type Database = {
           email?: string | null
           gst_number?: string | null
           igst_rate?: number
+          logo_url?: string | null
           phone?: string | null
           sgst_rate?: number
+          terms_and_conditions?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          bank_account_no?: string | null
+          bank_branch?: string | null
+          bank_ifsc_code?: string | null
+          bank_name?: string | null
+          bank_upi_id?: string | null
           cgst_rate?: number
           company_address?: string | null
           company_name?: string
@@ -181,8 +221,10 @@ export type Database = {
           email?: string | null
           gst_number?: string | null
           igst_rate?: number
+          logo_url?: string | null
           phone?: string | null
           sgst_rate?: number
+          terms_and_conditions?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -193,7 +235,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_invoice_number: {
+        Args: { user_uuid: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
