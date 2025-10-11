@@ -89,28 +89,66 @@ const InvoiceForm = () => {
   const [vehicleSuggestions, setVehicleSuggestions] = useState<any[]>([]);
   
   useEffect(() => {
-    // Load company settings
-    const savedSettings = localStorage.getItem('companySettings');
-    if (savedSettings) {
-      setCompanySettings(JSON.parse(savedSettings));
-    }
-    
-    // Load customer suggestions from previous invoices
-    const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    const customers = invoices.map((inv: Invoice) => ({
-      name: inv.customerName,
-      phone: inv.customerPhone,
-      gst: inv.customerGST || ''
-    }));
-    setCustomerSuggestions([...new Map(customers.map(c => [`${c.name}-${c.phone}`, c])).values()]);
-    
-    // Load vehicle suggestions
-    const vehicles = invoices.map((inv: Invoice) => ({
-      number: inv.vehicleNumber,
-      model: inv.vehicleModel
-    }));
-    setVehicleSuggestions([...new Map(vehicles.map(v => [v.number, v])).values()]);
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Load company settings from database
+      const { data: userSettings } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userSettings) {
+        setCompanySettings({
+          name: userSettings.company_name,
+          address: userSettings.company_address || '',
+          gstNumber: userSettings.gst_number || '',
+          phone: userSettings.phone || '',
+          email: userSettings.email || '',
+          cgstRate: Number(userSettings.cgst_rate) || 9,
+          sgstRate: Number(userSettings.sgst_rate) || 9,
+          igstRate: Number(userSettings.igst_rate) || 18
+        });
+      }
+
+      // Load customer suggestions from Supabase invoices
+      const { data: invoices } = await supabase
+        .from('invoices')
+        .select('customer_name, customer_phone, customer_gst')
+        .eq('user_id', user.id);
+
+      if (invoices) {
+        const customers = invoices.map(inv => ({
+          name: inv.customer_name,
+          phone: inv.customer_phone || '',
+          gst: inv.customer_gst || ''
+        }));
+        setCustomerSuggestions([...new Map(customers.map(c => [`${c.name}-${c.phone}`, c])).values()]);
+      }
+
+      // Load vehicle suggestions from Supabase invoices
+      const { data: vehicles } = await supabase
+        .from('invoices')
+        .select('vehicle_number, vehicle_model')
+        .eq('user_id', user.id);
+
+      if (vehicles) {
+        const vehicleList = vehicles.map(v => ({
+          number: v.vehicle_number || '',
+          model: v.vehicle_model || ''
+        }));
+        setVehicleSuggestions([...new Map(vehicleList.map(v => [v.number, v])).values()]);
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   const addService = () => {
     const newService = { description: '', hsn: '', quantity: 1, rate: 0, taxableValue: 0, gstPercent: 18, gstAmount: 0, total: 0, details: '' };
@@ -343,10 +381,6 @@ const InvoiceForm = () => {
       }]);
 
       if (error) throw error;
-
-      // Also save to localStorage for backward compatibility
-      const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-      localStorage.setItem('invoices', JSON.stringify([...existingInvoices, invoice]));
 
       toast({
         title: "Invoice Generated!",

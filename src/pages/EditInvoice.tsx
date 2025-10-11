@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceItem {
   description: string;
@@ -28,6 +29,7 @@ const EditInvoice = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const { user, loading } = useAuth();
+  const { toast } = useToast();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
@@ -42,19 +44,43 @@ const EditInvoice = () => {
 
   useEffect(() => {
     if (!user) return;
-    const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    const invoice = existingInvoices.find((inv: Invoice) => inv.id === id);
-    
-    if (invoice) {
-      setCustomerName(invoice.customerName);
-      setCustomerPhone(invoice.customerPhone);
-      setVehicleModel(invoice.vehicleModel);
-      setVehicleNumber(invoice.vehicleNumber);
-      setServices(invoice.services);
-    } else {
+    loadInvoice();
+  }, [id, user]);
+
+  const loadInvoice = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('invoices')
+        .select('*')
+        .eq('invoice_number', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setCustomerName(data.customer_name);
+        setCustomerPhone(data.customer_phone || '');
+        setVehicleModel(data.vehicle_model || '');
+        setVehicleNumber(data.vehicle_number || '');
+        setServices(Array.isArray(data.services) ? data.services as unknown as ServiceItem[] : [{ description: '', amount: 0 }]);
+      } else {
+        toast({
+          title: "Error",
+          description: "Invoice not found",
+          variant: "destructive"
+        });
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error loading invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load invoice",
+        variant: "destructive"
+      });
       navigate('/');
     }
-  }, [id, navigate, user]);
+  };
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
@@ -82,29 +108,37 @@ const EditInvoice = () => {
     return services.reduce((sum, service) => sum + service.amount, 0);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const updatedInvoice: Invoice = {
-      id: id!,
-      date: new Date().toISOString().split('T')[0],
-      customerName,
-      customerPhone,
-      vehicleModel,
-      vehicleNumber,
-      services,
-      total: calculateTotal()
-    };
+    try {
+      const { error } = await supabase
+        .from('invoices')
+        .update({
+          customer_name: customerName.trim(),
+          customer_phone: customerPhone.trim(),
+          vehicle_model: vehicleModel.trim(),
+          vehicle_number: vehicleNumber.trim().toUpperCase(),
+          services: services as any,
+          total: calculateTotal()
+        })
+        .eq('invoice_number', id);
 
-    const existingInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-    const updatedInvoices = existingInvoices.map((inv: Invoice) => 
-      inv.id === id ? updatedInvoice : inv
-    );
-    
-    localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
+      if (error) throw error;
 
-    toast.success("Invoice updated successfully");
-    navigate('/');
+      toast({
+        title: "Success",
+        description: "Invoice updated successfully"
+      });
+      navigate('/');
+    } catch (error) {
+      console.error('Error updating invoice:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update invoice. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

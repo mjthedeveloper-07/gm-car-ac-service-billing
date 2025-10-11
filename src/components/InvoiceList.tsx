@@ -77,10 +77,11 @@ const InvoiceList = () => {
       setFilteredInvoices(formattedInvoices);
     } catch (error) {
       console.error('Error loading invoices:', error);
-      // Fallback to localStorage
-      const storedInvoices = JSON.parse(localStorage.getItem('invoices') || '[]');
-      setInvoices(storedInvoices);
-      setFilteredInvoices(storedInvoices);
+      toast({ 
+        title: "Error", 
+        description: "Failed to load invoices",
+        variant: "destructive" 
+      });
     }
   };
 
@@ -205,11 +206,8 @@ const InvoiceList = () => {
         .eq('invoice_number', id);
 
       if (error) throw error;
-
-      // Also remove from localStorage
-      const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
-      localStorage.setItem('invoices', JSON.stringify(updatedInvoices));
       
+      const updatedInvoices = invoices.filter(invoice => invoice.id !== id);
       setInvoices(updatedInvoices);
       setFilteredInvoices(updatedInvoices);
       toast({ title: "Invoice deleted successfully" });

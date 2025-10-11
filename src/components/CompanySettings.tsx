@@ -8,6 +8,29 @@ import { Separator } from "@/components/ui/separator";
 import { Settings, Building, FileText, Plus, Trash2, Save } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import type { CompanySettings, PredefinedService } from '@/types/invoice';
+import { supabase } from "@/integrations/supabase/client";
+import { z } from 'zod';
+
+// Validation schemas
+const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+const phoneRegex = /^[+]?[1-9]\d{1,14}$/;
+
+const companySettingsSchema = z.object({
+  name: z.string().trim().min(1, "Company name is required").max(200, "Company name too long"),
+  address: z.string().trim().min(1, "Address is required").max(500, "Address too long"),
+  gstNumber: z.string().trim().regex(gstRegex, "Invalid GST number format"),
+  phone: z.string().trim().regex(phoneRegex, "Invalid phone number format"),
+  email: z.string().trim().email("Invalid email format").max(255, "Email too long"),
+  cgstRate: z.number().min(0, "Rate cannot be negative").max(100, "Rate cannot exceed 100%"),
+  sgstRate: z.number().min(0, "Rate cannot be negative").max(100, "Rate cannot exceed 100%"),
+  igstRate: z.number().min(0, "Rate cannot be negative").max(100, "Rate cannot exceed 100%")
+});
+
+const serviceSchema = z.object({
+  id: z.string(),
+  name: z.string().trim().min(1, "Service name required").max(100, "Service name too long"),
+  defaultRate: z.number().min(0, "Rate cannot be negative").max(1000000, "Rate too large")
+});
 
 const CompanySettingsComponent = () => {
   const { toast } = useToast();
@@ -35,17 +58,51 @@ const CompanySettingsComponent = () => {
   ]);
 
   useEffect(() => {
-    // Load settings from localStorage
-    const savedSettings = localStorage.getItem('companySettings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-
-    const savedServices = localStorage.getItem('predefinedServices');
-    if (savedServices) {
-      setServices(JSON.parse(savedServices));
-    }
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Load user settings from database
+      const { data: userSettings } = await supabase
+        .from('user_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (userSettings) {
+        setSettings({
+          name: userSettings.company_name,
+          address: userSettings.company_address || '',
+          gstNumber: userSettings.gst_number || '',
+          phone: userSettings.phone || '',
+          email: userSettings.email || '',
+          cgstRate: Number(userSettings.cgst_rate) || 9,
+          sgstRate: Number(userSettings.sgst_rate) || 9,
+          igstRate: Number(userSettings.igst_rate) || 18
+        });
+      }
+
+      // Load predefined services from database
+      const { data: userServices } = await supabase
+        .from('predefined_services')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (userServices && userServices.length > 0) {
+        setServices(userServices.map(s => ({
+          id: s.id,
+          name: s.name,
+          defaultRate: Number(s.default_rate)
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+    }
+  };
 
   const handleSettingsChange = (field: keyof CompanySettings, value: string | number) => {
     setSettings(prev => ({ ...prev, [field]: value }));
@@ -70,14 +127,82 @@ const CompanySettingsComponent = () => {
     setServices(services.filter((_, i) => i !== index));
   };
 
-  const saveSettings = () => {
-    localStorage.setItem('companySettings', JSON.stringify(settings));
-    localStorage.setItem('predefinedServices', JSON.stringify(services));
-    
-    toast({
-      title: "Settings Saved!",
-      description: "Company settings and services have been updated successfully.",
-    });
+  const saveSettings = async () => {
+    try {
+      // Validate settings
+      const validatedSettings = companySettingsSchema.parse(settings);
+      
+      // Validate services
+      for (const service of services) {
+        serviceSchema.parse(service);
+      }
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please log in to save settings.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Upsert user settings
+      const { error: settingsError } = await supabase
+        .from('user_settings')
+        .upsert({
+          user_id: user.id,
+          company_name: validatedSettings.name.trim(),
+          company_address: validatedSettings.address.trim(),
+          gst_number: validatedSettings.gstNumber.trim(),
+          phone: validatedSettings.phone.trim(),
+          email: validatedSettings.email.trim(),
+          cgst_rate: validatedSettings.cgstRate,
+          sgst_rate: validatedSettings.sgstRate,
+          igst_rate: validatedSettings.igstRate
+        }, { onConflict: 'user_id' });
+
+      if (settingsError) throw settingsError;
+
+      // Delete existing services and insert new ones
+      await supabase
+        .from('predefined_services')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (services.length > 0) {
+        const { error: servicesError } = await supabase
+          .from('predefined_services')
+          .insert(services.map(s => ({
+            id: s.id,
+            user_id: user.id,
+            name: s.name.trim(),
+            default_rate: s.defaultRate
+          })));
+
+        if (servicesError) throw servicesError;
+      }
+      
+      toast({
+        title: "Settings Saved!",
+        description: "Company settings and services have been updated successfully.",
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      } else {
+        console.error('Error saving settings:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save settings. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
   };
 
   return (

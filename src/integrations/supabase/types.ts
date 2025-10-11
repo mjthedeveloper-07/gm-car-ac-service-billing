@@ -122,6 +122,72 @@ export type Database = {
         }
         Relationships: []
       }
+      predefined_services: {
+        Row: {
+          created_at: string
+          default_rate: number
+          id: string
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          default_rate: number
+          id?: string
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          default_rate?: number
+          id?: string
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          cgst_rate: number
+          company_address: string | null
+          company_name: string
+          created_at: string
+          email: string | null
+          gst_number: string | null
+          igst_rate: number
+          phone: string | null
+          sgst_rate: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cgst_rate?: number
+          company_address?: string | null
+          company_name: string
+          created_at?: string
+          email?: string | null
+          gst_number?: string | null
+          igst_rate?: number
+          phone?: string | null
+          sgst_rate?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cgst_rate?: number
+          company_address?: string | null
+          company_name?: string
+          created_at?: string
+          email?: string | null
+          gst_number?: string | null
+          igst_rate?: number
+          phone?: string | null
+          sgst_rate?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
