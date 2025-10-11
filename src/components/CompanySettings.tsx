@@ -21,6 +21,7 @@ const companySettingsSchema = z.object({
   gstNumber: z.string().trim().regex(gstRegex, "Invalid GST number format"),
   phone: z.string().trim().regex(phoneRegex, "Invalid phone number format"),
   email: z.string().trim().email("Invalid email format").max(255, "Email too long"),
+  website: z.string().trim().optional(),
   cgstRate: z.number().min(0, "Rate cannot be negative").max(100, "Rate cannot exceed 100%"),
   sgstRate: z.number().min(0, "Rate cannot be negative").max(100, "Rate cannot exceed 100%"),
   igstRate: z.number().min(0, "Rate cannot be negative").max(100, "Rate cannot exceed 100%")
@@ -80,6 +81,7 @@ const CompanySettingsComponent = () => {
           gstNumber: userSettings.gst_number || '',
           phone: userSettings.phone || '',
           email: userSettings.email || '',
+          website: userSettings.website || '',
           cgstRate: Number(userSettings.cgst_rate) || 9,
           sgstRate: Number(userSettings.sgst_rate) || 9,
           igstRate: Number(userSettings.igst_rate) || 18
@@ -157,6 +159,7 @@ const CompanySettingsComponent = () => {
           gst_number: validatedSettings.gstNumber.trim(),
           phone: validatedSettings.phone.trim(),
           email: validatedSettings.email.trim(),
+          website: validatedSettings.website?.trim() || null,
           cgst_rate: validatedSettings.cgstRate,
           sgst_rate: validatedSettings.sgstRate,
           igst_rate: validatedSettings.igstRate
@@ -256,6 +259,18 @@ const CompanySettingsComponent = () => {
                 value={settings.email}
                 onChange={e => handleSettingsChange('email', e.target.value)}
                 className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="website">Website</Label>
+              <Input
+                id="website"
+                type="url"
+                value={settings.website || ''}
+                onChange={e => handleSettingsChange('website', e.target.value)}
+                className="mt-1"
+                placeholder="www.example.com"
               />
             </div>
           </div>

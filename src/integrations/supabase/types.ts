@@ -187,6 +187,7 @@ export type Database = {
           terms_and_conditions: string | null
           updated_at: string
           user_id: string
+          website: string | null
         }
         Insert: {
           bank_account_no?: string | null
@@ -207,6 +208,7 @@ export type Database = {
           terms_and_conditions?: string | null
           updated_at?: string
           user_id: string
+          website?: string | null
         }
         Update: {
           bank_account_no?: string | null
@@ -227,6 +229,7 @@ export type Database = {
           terms_and_conditions?: string | null
           updated_at?: string
           user_id?: string
+          website?: string | null
         }
         Relationships: []
       }

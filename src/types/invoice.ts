@@ -54,6 +54,7 @@ export interface CompanySettings {
   gstNumber: string;
   phone: string;
   email: string;
+  website?: string;
   logo?: string;
   cgstRate: number;
   sgstRate: number;

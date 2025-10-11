@@ -197,7 +197,10 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
                 <div>Phone: <span className="font-semibold">{companyDetails.phone}</span></div>
                 <div className="text-right">GSTIN: <span className="font-semibold">{companyDetails.gstin}</span></div>
               </div>
-              <div className="text-sm">State: <span className="font-semibold">33-Tamil Nadu</span></div>
+              <div className="grid grid-cols-2 text-sm">
+                <div>Website: <span className="font-semibold">{companyDetails.website}</span></div>
+                <div className="text-right">State: <span className="font-semibold">33-Tamil Nadu</span></div>
+              </div>
             </div>
           </div>
 
