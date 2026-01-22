@@ -238,10 +238,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      generate_invoice_number: {
-        Args: { user_uuid: string }
-        Returns: string
-      }
+      generate_invoice_number: { Args: { user_uuid: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
