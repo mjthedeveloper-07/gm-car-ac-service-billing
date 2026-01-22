@@ -1,4 +1,4 @@
-import { LayoutList, Plus, Settings, User, Shield } from "lucide-react";
+import { LayoutList, Plus, Settings, Building } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -9,7 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { useAuth } from "@/hooks/useAuth";
 import { Card } from "@/components/ui/card";
 
 const items = [
@@ -31,24 +30,21 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { user } = useAuth();
-
   return (
     <Sidebar>
       <SidebarContent>
-        {/* User Profile Section */}
+        {/* Business Header Section */}
         <div className="border-b p-4 mb-2">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="h-5 w-5 text-primary" />
+              <Building className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium truncate">
-                {user?.email || "Guest"}
+                GM Car AC Service
               </p>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                <Shield className="h-3 w-3" />
-                Secure Account
+              <p className="text-xs text-muted-foreground">
+                Billing System
               </p>
             </div>
           </div>
@@ -76,15 +72,15 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Privacy Notice */}
+        {/* Info Notice */}
         <div className="mt-auto border-t p-4">
           <Card className="bg-primary/5 border-primary/20 p-3">
             <div className="flex items-start gap-2">
-              <Shield className="h-4 w-4 text-primary mt-0.5" />
+              <Building className="h-4 w-4 text-primary mt-0.5" />
               <div className="flex-1 text-xs">
-                <p className="font-medium text-primary mb-1">Privacy Protected</p>
+                <p className="font-medium text-primary mb-1">Professional Billing</p>
                 <p className="text-muted-foreground">
-                  Your data is encrypted and only accessible to you
+                  GST compliant invoice generation system
                 </p>
               </div>
             </div>

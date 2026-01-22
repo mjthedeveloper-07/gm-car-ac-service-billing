@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Receipt, Phone } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ServiceItem {
@@ -14,38 +13,22 @@ interface ServiceItem {
   amount: number;
 }
 
-interface Invoice {
-  id: string;
-  date: string;
-  customerName: string;
-  customerPhone: string;
-  vehicleModel: string;
-  vehicleNumber: string;
-  services: ServiceItem[];
-  total: number;
-}
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
 
 const EditInvoice = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { user, loading } = useAuth();
   const { toast } = useToast();
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [vehicleModel, setVehicleModel] = useState('');
   const [vehicleNumber, setVehicleNumber] = useState('');
   const [services, setServices] = useState<ServiceItem[]>([{ description: '', amount: 0 }]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && !user) {
-      navigate("/auth");
-    }
-  }, [user, loading, navigate]);
-
-  useEffect(() => {
-    if (!user) return;
     loadInvoice();
-  }, [id, user]);
+  }, [id]);
 
   const loadInvoice = async () => {
     try {
@@ -79,15 +62,13 @@ const EditInvoice = () => {
         variant: "destructive"
       });
       navigate('/');
+    } finally {
+      setLoading(false);
     }
   };
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (!user) {
-    return null;
   }
 
   const addService = () => {
@@ -246,4 +227,3 @@ const EditInvoice = () => {
 };
 
 export default EditInvoice;
-

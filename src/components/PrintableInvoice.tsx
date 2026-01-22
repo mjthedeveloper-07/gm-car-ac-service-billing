@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
 interface ServiceItem {
   description: string;
@@ -62,6 +61,8 @@ interface CompanyDetails {
   gstin: string;
 }
 
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+
 const PrintableInvoice: React.FC<InvoiceProps> = ({
   customerName,
   customerPhone,
@@ -92,7 +93,6 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
   taxType,
   bankDetails
 }) => {
-  const { user } = useAuth();
   const [companyDetails, setCompanyDetails] = useState<CompanyDetails>({
     name: 'GM CAR AC & SERVICE',
     address: 'No:16 Gangai Amman Kallikuppam, Ambattur Chennai-53',
@@ -106,12 +106,10 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
 
   useEffect(() => {
     const fetchCompanyDetails = async () => {
-      if (!user?.id) return;
-      
       const { data, error } = await supabase
         .from('user_settings')
         .select('company_name, company_address, phone, email, website, gst_number')
-        .eq('user_id', user.id)
+        .eq('user_id', DEFAULT_USER_ID)
         .single();
 
       if (data && !error) {
@@ -129,7 +127,7 @@ const PrintableInvoice: React.FC<InvoiceProps> = ({
     };
 
     fetchCompanyDetails();
-  }, [user?.id]);
+  }, []);
 
   const handlePrint = () => {
     window.print();
