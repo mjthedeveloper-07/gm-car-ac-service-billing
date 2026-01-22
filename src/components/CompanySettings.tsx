@@ -33,6 +33,8 @@ const serviceSchema = z.object({
   defaultRate: z.number().min(0, "Rate cannot be negative").max(1000000, "Rate too large")
 });
 
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+
 const CompanySettingsComponent = () => {
   const { toast } = useToast();
   
@@ -64,14 +66,11 @@ const CompanySettingsComponent = () => {
 
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       // Load user settings from database
       const { data: userSettings } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', DEFAULT_USER_ID)
         .single();
 
       if (userSettings) {
@@ -92,7 +91,7 @@ const CompanySettingsComponent = () => {
       const { data: userServices } = await supabase
         .from('predefined_services')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', DEFAULT_USER_ID);
 
       if (userServices && userServices.length > 0) {
         setServices(userServices.map(s => ({
@@ -139,21 +138,11 @@ const CompanySettingsComponent = () => {
         serviceSchema.parse(service);
       }
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to save settings.",
-          variant: "destructive",
-        });
-        return;
-      }
-
       // Upsert user settings
       const { error: settingsError } = await supabase
         .from('user_settings')
         .upsert({
-          user_id: user.id,
+          user_id: DEFAULT_USER_ID,
           company_name: validatedSettings.name.trim(),
           company_address: validatedSettings.address.trim(),
           gst_number: validatedSettings.gstNumber.trim(),
@@ -171,14 +160,14 @@ const CompanySettingsComponent = () => {
       await supabase
         .from('predefined_services')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', DEFAULT_USER_ID);
 
       if (services.length > 0) {
         const { error: servicesError } = await supabase
           .from('predefined_services')
           .insert(services.map(s => ({
             id: s.id,
-            user_id: user.id,
+            user_id: DEFAULT_USER_ID,
             name: s.name.trim(),
             default_rate: s.defaultRate
           })));

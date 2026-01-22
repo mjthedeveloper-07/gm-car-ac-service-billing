@@ -42,6 +42,8 @@ const defaultServices: PredefinedService[] = [
   { id: '8', name: 'General Checkup', defaultRate: 500 },
 ];
 
+const DEFAULT_USER_ID = '00000000-0000-0000-0000-000000000000';
+
 const InvoiceForm = () => {
   const { toast } = useToast();
   
@@ -94,14 +96,11 @@ const InvoiceForm = () => {
 
   const loadSettings = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       // Load company settings from database
       const { data: userSettings } = await supabase
         .from('user_settings')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', DEFAULT_USER_ID)
         .single();
 
       if (userSettings) {
@@ -120,8 +119,7 @@ const InvoiceForm = () => {
       // Load customer suggestions from Supabase invoices
       const { data: invoices } = await supabase
         .from('invoices')
-        .select('customer_name, customer_phone, customer_gst')
-        .eq('user_id', user.id);
+        .select('customer_name, customer_phone, customer_gst');
 
       if (invoices) {
         const customers = invoices.map(inv => ({
@@ -135,8 +133,7 @@ const InvoiceForm = () => {
       // Load vehicle suggestions from Supabase invoices
       const { data: vehicles } = await supabase
         .from('invoices')
-        .select('vehicle_number, vehicle_model')
-        .eq('user_id', user.id);
+        .select('vehicle_number, vehicle_model');
 
       if (vehicles) {
         const vehicleList = vehicles.map(v => ({
@@ -328,17 +325,6 @@ const InvoiceForm = () => {
       }
     }
 
-    // Get current user
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      toast({
-        title: "Authentication Required",
-        description: "Please log in to create invoices.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
     const taxes = calculateTaxes();
     const subtotal = calculateSubtotal();
     const invoiceNumber = `INV-${Date.now()}`;
@@ -361,9 +347,9 @@ const InvoiceForm = () => {
     };
 
     try {
-      // Save to Supabase database with user_id
+      // Save to Supabase database with default user_id
       const { error } = await supabase.from('invoices').insert([{
-        user_id: user.id,
+        user_id: DEFAULT_USER_ID,
         invoice_number: invoiceNumber,
         date: new Date().toISOString(),
         customer_name: customerName.trim(),

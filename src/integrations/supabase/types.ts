@@ -95,7 +95,7 @@ export type Database = {
           total?: number
           total_in_words?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string
           vehicle_model?: string | null
           vehicle_number?: string | null
         }
@@ -156,7 +156,7 @@ export type Database = {
           default_rate: number
           id?: string
           name: string
-          user_id: string
+          user_id?: string
         }
         Update: {
           created_at?: string
@@ -228,7 +228,7 @@ export type Database = {
           sgst_rate?: number
           terms_and_conditions?: string | null
           updated_at?: string
-          user_id: string
+          user_id?: string
           website?: string | null
         }
         Update: {
