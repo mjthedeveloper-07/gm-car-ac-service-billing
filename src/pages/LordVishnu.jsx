@@ -339,6 +339,11 @@ function Starfield() {
     function resize() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      /* reposition stars to fit new viewport */
+      for (const s of stars) {
+        s.x = Math.random() * canvas.width;
+        s.y = Math.random() * canvas.height;
+      }
     }
     resize();
     window.addEventListener("resize", resize);
@@ -358,11 +363,13 @@ function Starfield() {
       for (const s of stars) {
         s.alpha += s.da;
         if (s.alpha <= 0.1 || s.alpha >= 1) s.da *= -1;
+        ctx.globalAlpha = s.alpha;
         ctx.beginPath();
         ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${s.alpha.toFixed(2)})`;
+        ctx.fillStyle = "white";
         ctx.fill();
       }
+      ctx.globalAlpha = 1;
       animId = requestAnimationFrame(draw);
     }
     draw();
@@ -411,10 +418,18 @@ function FadeSection({ id, className = "", children }) {
 export default function LordVishnu() {
   /* inject styles once */
   useEffect(() => {
-    const tag = document.createElement("style");
-    tag.textContent = CSS;
-    document.head.appendChild(tag);
-    return () => { document.head.removeChild(tag); };
+    const STYLE_ID = "vishnu-page-styles";
+    let tag = document.getElementById(STYLE_ID);
+    if (!tag) {
+      tag = document.createElement("style");
+      tag.id = STYLE_ID;
+      tag.textContent = CSS;
+      document.head.appendChild(tag);
+    }
+    return () => {
+      const el = document.getElementById(STYLE_ID);
+      if (el) document.head.removeChild(el);
+    };
   }, []);
 
   const scrollTo = (id) => {
