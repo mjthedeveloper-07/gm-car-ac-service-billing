@@ -325,7 +325,7 @@ const STYLES = `
 `;
 
 // ═══════════════════════════════════════════════════════
-// STARFIELD — 200+ canvas stars
+// STARFIELD — 250 canvas stars
 // ═══════════════════════════════════════════════════════
 function Starfield() {
   const canvasRef = useRef(null);
